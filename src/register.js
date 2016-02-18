@@ -7,14 +7,11 @@ var debug = require('debug')('hookup:register');
  */
 let peers = {};
 
-function findPeerBySocket(socket) {
-  return Object.keys(peers).find(id => peers[id] === socket);
-}
 
-function add(socket, id) {
+function add(connection, id) {
   debug('add', id);
 
-  let previousId = findPeerBySocket(socket);
+  let previousId = findPeerBySocket(connection);
   if (previousId !== undefined) {
     if (previousId === id) {
       // same id, nothing to do
@@ -30,18 +27,22 @@ function add(socket, id) {
     throw new Error(`id "${id}" already taken`);
   }
 
-  peers[id] = socket;
+  peers[id] = connection;
 
   return id;
 }
 
-function remove(socket) {
-  let id = findPeerBySocket(socket);
+function remove(connection) {
+  let id = findPeerBySocket(connection);
   debug('remove', id);
 
   if (id !== undefined) {
     delete peers[id];
   }
+}
+
+function findPeerBySocket(connection) {
+  return Object.keys(peers).find(id => peers[id] === connection);
 }
 
 function find (id) {

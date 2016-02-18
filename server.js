@@ -65,35 +65,42 @@ wss.on('connection', function connection(socket) {
 var functions = {
   /**
    * Register an id for a peer
-   * @param {WebSocket} socket
+   * @param {Object} connection
    * @param {{type: 'register', id: string}} message
    * @return {string} Returns the peers id
    */
-  register: function (socket, message) {
-    return register.add(socket, message.id);
+  register: function (connection, message) {
+    var id = register.add(connection, message.id);
+    connection.hookupId = id;
+    return id;
   },
 
   /**
    * Unregister this peer
-   * @param {WebSocket} socket
+   * @param {Object} connection
    * @param {{type: 'register'}} message
    */
-  unregister: function (socket, message) {
-    register.remove(socket);
+  unregister: function (connection, message) {
+    register.remove(connection);
   },
 
   /**
    * Forward an offer to connect to a peer, should respond with an answer
-   * @param {WebSocket} socket
+   * @param {Object} connection
    * @param {{type: 'connect', from: string, to: string, offer: string}} message
    * @return {Promise.<{answer: string}, Error>}
    */
-  connect: function (socket, message) {
-    let peer = register.find(message.to);
-    if (!peer) {
-      throw new Error(`Peer not found (id: ${message.to}})`);
+  connect: function (connection, message) {
+    if (message.from !== connection.hookupId) {
+      throw new Error(
+          `Invalid id. message.from (${JSON.stringify(message.from)}) does not match the id of the the connection (${JSON.stringify(connection.hookupId)})`)
     }
-    return peer.request(message);
+
+    let to = register.find(message.to);
+    if (!to) {
+      throw new Error(`Peer not found (message.to: ${message.to}})`);
+    }
+    return to.request(message);
   }
 };
 

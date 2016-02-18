@@ -136,26 +136,6 @@ function connect (from, to) {
 
 }
 
-
-function createOffer (peer) {
-  return new Promise(function (resolve, reject) {
-
-    peer.on('error', function (err) {
-      // TODO: reject promise?
-      console.error(err);
-    });
-
-    peer.on('signal', function (data) {
-      console.log('signal', JSON.stringify(data));
-
-      if (data.type === 'offer') {
-        resolve(data);
-      }
-    });
-
-  });
-}
-
 window.addEventListener('load', function load() {
   qs('#register').onclick = function () {
     myId = qs('#from').value;
@@ -168,64 +148,3 @@ window.addEventListener('load', function load() {
     connect(from, to);
   };
 });
-
-
-//
-//function connectToPeer (peerId) {
-//  var peer = new SimplePeer({ initiator: true, trickle: false });
-//  peers[peerId] = peer;
-//
-//  peer.on('error', function (err) { console.log('error', err) });
-//
-//  peer.on('signal', function (data) {
-//    console.log('SIGNAL', JSON.stringify(data));
-//
-//
-//
-//    document.querySelector('#outgoing').textContent = JSON.stringify(data)
-//  });
-//
-//  document.querySelector('form').addEventListener('submit', function (ev) {
-//    ev.preventDefault();
-//    p.signal(JSON.parse(document.querySelector('#incoming').value))
-//  });
-//
-//  peer.on('connect', function () {
-//    console.log('CONNECT');
-//    p.send('hello there ' + Math.random())
-//  });
-//
-//  p.on('data', function (data) {
-//    console.log('data: ' + data)
-//  });
-//
-//}
-//
-//
-//window.addEventListener('load', function () {
-//
-//  var p = new SimplePeer({ initiator: location.hash === '#1', trickle: false });
-//
-//  p.on('error', function (err) { console.log('error', err) });
-//
-//  p.on('signal', function (data) {
-//    console.log('SIGNAL', JSON.stringify(data));
-//    document.querySelector('#outgoing').textContent = JSON.stringify(data)
-//  });
-//
-//  document.querySelector('form').addEventListener('submit', function (ev) {
-//    ev.preventDefault();
-//    p.signal(JSON.parse(document.querySelector('#incoming').value))
-//  });
-//
-//  p.on('connect', function () {
-//    console.log('CONNECT');
-//    p.send('hello there ' + Math.random())
-//  });
-//
-//  p.on('data', function (data) {
-//    console.log('data: ' + data)
-//  });
-//  console.log('done')
-//
-//});
