@@ -47,7 +47,7 @@ wss.on('connection', function connection(socket) {
   socket.on('close', function () {
     debugSocket('A peer disconnected');
 
-    register.remove(socket);
+    register.remove(connection);
   });
 
   // handle incoming requests
