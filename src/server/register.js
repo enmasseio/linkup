@@ -8,7 +8,7 @@ var debug = require('debug')('hookup:register');
 let peers = {};
 
 
-function add(connection, id) {
+export function register(connection, id) {
   debug('add', id);
 
   let previousId = findPeerBySocket(connection);
@@ -32,7 +32,7 @@ function add(connection, id) {
   return id;
 }
 
-function remove(connection) {
+export function unregister(connection) {
   let id = findPeerBySocket(connection);
   debug('remove', id);
 
@@ -45,10 +45,6 @@ function findPeerBySocket(connection) {
   return Object.keys(peers).find(id => peers[id] === connection);
 }
 
-function find (id) {
+export function find (id) {
   return peers[id];
 }
-
-exports.add = add;
-exports.remove = remove;
-exports.find = find;

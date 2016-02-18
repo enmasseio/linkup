@@ -1,14 +1,16 @@
 'use strict';
 
-var http = require('http');
+// commonjs imports
 var url = require('url');
 var WebSocketServer = require('ws').Server;
 var express = require('express');
-var register = require('./register');
-var requestify = require('../shared/requestify');
+
+// es6 imports
+import { register, unregister, find } from './register';
+import { requestify } from '../shared/requestify';
 
 
-exports.createServer = function (port) {
+function createServer (port) {
   port = port || 3000;
 
   var app = express();
@@ -43,7 +45,7 @@ exports.createServer = function (port) {
     socket.on('close', function () {
       debugSocket('A peer disconnected');
 
-      register.remove(connection);
+      unregister(connection);
     });
 
     // handle incoming requests
@@ -66,7 +68,7 @@ exports.createServer = function (port) {
      * @return {string} Returns the peers id
      */
     register: function (connection, message) {
-      var id = register.add(connection, message.id);
+      var id = register(connection, message.id);
       connection.hookupId = id;
       return id;
     },
@@ -77,7 +79,7 @@ exports.createServer = function (port) {
      * @param {{type: 'register'}} message
      */
     unregister: function (connection, message) {
-      register.remove(connection);
+      unregister(connection);
     },
 
     /**
@@ -92,7 +94,7 @@ exports.createServer = function (port) {
             `Invalid id. message.from (${JSON.stringify(message.from)}) does not match the id of the the connection (${JSON.stringify(connection.hookupId)})`)
       }
 
-      let to = register.find(message.to);
+      let to = find(message.to);
       if (!to) {
         throw new Error(`Peer not found (message.to: ${message.to}})`);
       }
@@ -107,4 +109,7 @@ exports.createServer = function (port) {
   });
 
   return app;
-};
+}
+
+var PORT = 3000;
+createServer(PORT);

@@ -32,3 +32,6 @@ node_modules
 
 # WebStorm config
 .idea
+
+# bundled files
+dist

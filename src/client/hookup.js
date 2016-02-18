@@ -1,6 +1,11 @@
 "use strict";
 
-var url = 'ws://' + location.host;
+import { requestify } from '../shared/requestify';
+import ReconnectingWebSocket from 'reconnectingwebsocket';
+import SimplePeer from 'simple-peer/simplepeer.min';
+
+//var url = 'ws://' + location.host;
+var url = 'ws://localhost:3000';
 
 var socket = new ReconnectingWebSocket(url);
 

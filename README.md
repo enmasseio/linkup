@@ -1,18 +1,39 @@
 # hookup
 Hook up with peers by id using a WebRTC connection
 
-## Run
 
-To run the server:
 
-```
-node demo/server.js
-```
+## Develop
 
-To run in debug mode:
+To run the server in development mode and with debugging:
 
 ```
-DEBUG=* node demo/server.js
+babel-node src/server/broker
 ```
 
-Then open a client in your browser: [http://localhost:3000](http://localhost:3000)
+Then open the following file in your browser:
+
+```
+/demo/index.html
+```
+
+
+## Build
+
+The build script generates a bundled file for both clients and for running the broker server.
+
+```
+npm install
+npm run build
+```
+
+To run the generated code for the server:
+
+```
+node dist/broker
+```
+
+
+## License
+
+MIT
