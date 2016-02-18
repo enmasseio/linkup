@@ -2,7 +2,7 @@
   "name": "hookup",
   "version": "0.0.1",
   "description": "Hook up with peers by id using a WebRTC connection",
-  "main": "server.js",
+  "main": "demo/server.js",
   "scripts": {
     "test": "mocha"
   },

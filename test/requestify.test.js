@@ -1,7 +1,7 @@
 "use strict";
 
 var assert = require('assert');
-var requestify = require('../shared/requestify');
+var requestify = require('./requestify');
 
 
 describe('requestify', function () {

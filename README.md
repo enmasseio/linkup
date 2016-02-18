@@ -6,13 +6,13 @@ Hook up with peers by id using a WebRTC connection
 To run the server:
 
 ```
-node server.js
+node demo/server.js
 ```
 
 To run in debug mode:
 
 ```
-DEBUG=* node server.js
+DEBUG=* node demo/server.js
 ```
 
 Then open a client in your browser: [http://localhost:3000](http://localhost:3000)
