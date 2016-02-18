@@ -19,29 +19,71 @@ socket.onerror = function () {
 };
 
 
-var channel = requestify();
-channel.send = function (message) {
+var connection = requestify();
+connection.send = function (message) {
   console.log('send message', message);
   socket.send(message);
 };
 socket.onmessage = function (event) {
   console.log('receive message', event.data);
-  channel.receive(event.data);
+  connection.receive(event.data);
 };
 
+// handle an incoming request
+connection.on('request', function (message) {
+  var fn = functions[message.type];
+  if (!fn) {
+    throw new Error(`Unknown message type "${message.type}"`);
+  }
+  return fn(message);
+});
+
+
+var functions = {
+  /**
+   * Incoming connection request. The request contains an WebRTC offer, response will
+   * contain an answer.
+   * @param {{type: 'connect', from: string, to: string, offer: string}} message
+   * @return {Promise.<{answer: string}, Error>}
+   */
+  connect: function (message) {
+    console.log('connect', message);
+
+    // TODO: generate a real WebRTC answer
+    return Promise.resolve({answer: 'answer...'});
+  }
+};
+
+
+function register () {
+  var id = qs('#from').value;
+
+  connection.request({type: 'register', id: id})
+      .then(function (response) {
+        console.log('response', response);
+      })
+      .catch(function (err) {
+        console.error(err);
+      });
+}
+
+function connect () {
+  var from = qs('#from').value;
+  var to = qs('#to').value;
+  var offer = 'offer...'; // TODO: generate a real WebRTC offer
+
+  connection.request({type: 'connect', from, to, offer})
+      .then(function (response) {
+        console.log('response', response);
+      })
+      .catch(function (err) {
+        console.error(err);
+      });
+}
+
 window.addEventListener('load', function load() {
-
-  qs('#register').onclick = function () {
-    var id = qs('#from').value;
-    channel.request({type: 'register', id: id})
-        .then(function (response) {
-          console.log('response', response);
-        })
-        .catch(function (err) {
-          console.error(err);
-        });
-  };
-
+  qs('#register').onclick = register;
+  qs('#connect').onclick = connect;
 });
 
 

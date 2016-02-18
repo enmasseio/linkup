@@ -52,17 +52,17 @@ wss.on('connection', function connection(socket) {
 
   // handle incoming requests
   connection.on('request', function (message) {
-    var method = methods[message.type];
-    if (!method) {
+    var fn = functions[message.type];
+    if (!fn) {
       throw new Error(`Unknown message type "${message.type}"`);
     }
-    return method(socket, message);
+    return fn(connection, message);
   });
 
 });
 
 
-var methods = {
+var functions = {
   /**
    * Register an id for a peer
    * @param {WebSocket} socket
@@ -83,29 +83,15 @@ var methods = {
   },
 
   /**
-   * Forward an offer
+   * Forward an offer to connect to a peer, should respond with an answer
    * @param {WebSocket} socket
-   * @param {{type: 'offer', from: string, to: string, offer: string}} message
-   * @return {Promise.<*, Error>|*}
+   * @param {{type: 'connect', from: string, to: string, offer: string}} message
+   * @return {Promise.<{answer: string}, Error>}
    */
-  offer: function (socket, message) {
+  connect: function (socket, message) {
     let peer = register.find(message.to);
     if (!peer) {
-      throw `Peer not found (id: ${message.to}})`;
-    }
-    return peer.request(message);
-  },
-
-  /**
-   * Forward an offer
-   * @param {WebSocket} socket
-   * @param {{type: 'offer', from: string, to: string, offer: string}} message
-   * @return {Promise.<*, Error>|*}
-   */
-  answer: function (socket, message) {
-    let peer = register.find(message.to);
-    if (!peer) {
-      throw `Peer not found (id: ${message.to}})`;
+      throw new Error(`Peer not found (id: ${message.to}})`);
     }
     return peer.request(message);
   }
