@@ -1,0 +1,35 @@
+{
+  "name": "hookup",
+  "version": "0.0.1",
+  "description": "Hook up with peers by id using a WebRTC connection",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enmasseio/hookup.git"
+  },
+  "keywords": [
+    "webrtc",
+    "connect",
+    "peer to peer"
+  ],
+  "author": "Jos de Jong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/enmasseio/hookup/issues"
+  },
+  "homepage": "https://github.com/enmasseio/hookup#readme",
+  "dependencies": {
+    "debug": "2.2.0",
+    "express": "4.13.4",
+    "node-uuid": "1.4.7",
+    "reconnectingwebsocket": "1.0.0",
+    "simple-peer": "5.12.0",
+    "ws": "^1.0.1"
+  },
+  "devDependencies": {
+    "mocha": "2.4.5"
+  }
+}

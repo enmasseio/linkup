@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>hookup client demo</title>
+  <!--<script src="socket.min.js"></script>-->
+  <script src="reconnecting-websocket.min.js"></script>
+  <script src="simplepeer.min.js"></script>
+  <script src="requestify.js"></script>
+  <script src="hookup.js"></script>
+</head>
+<body>
+  See developer console (F12)...
+
+  <p>
+    Set an id:
+    <input type="text" value="peer1" id="from" />
+    <button id="register">Register</button>
+  </p>
+  <p>
+    Connect to:
+    <input type="text" value="peer2" id="to" />
+    <button id="connect">Connect</button>
+  </p>
+
+  <hr>
+  <form>
+    <textarea id="incoming"></textarea>
+    <button type="submit">submit</button>
+  </form>
+  <pre id="outgoing"></pre>
+
+</body>
+</html>
