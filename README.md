@@ -2,13 +2,18 @@
 Hook up with peers by id using a WebRTC connection
 
 
-
 ## Develop
 
-To run the server in development mode and with debugging:
+To run the broker server in development mode and with debugging:
 
 ```
-DEBUG=hookup:* babel-node src/broker/server
+npm run dev-server
+```
+
+To watch the code for changes and built the client side lib, open a second terminal and run:
+
+```
+npm run watch
 ```
 
 Then open the following file in your browser:
