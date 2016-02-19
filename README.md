@@ -8,7 +8,7 @@ Hook up with peers by id using a WebRTC connection
 To run the server in development mode and with debugging:
 
 ```
-babel-node src/server/broker
+DEBUG=hookup:* babel-node src/broker/server
 ```
 
 Then open the following file in your browser:
@@ -20,17 +20,17 @@ Then open the following file in your browser:
 
 ## Build
 
-The build script generates a bundled file for both clients and for running the broker server.
+The build script generates a bundled file for both peer libraries and for running the broker server.
 
 ```
 npm install
 npm run build
 ```
 
-To run the generated code for the server:
+To run the generated the generated code for the broker server:
 
 ```
-node dist/broker
+node dist/broker/server
 ```
 
 

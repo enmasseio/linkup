@@ -4,8 +4,8 @@ import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
-  entry: 'src/server/broker.js',
-  dest: 'dist/broker.js',
+  entry: 'src/broker/server.js',
+  dest: 'dist/broker/server.js',
   format: 'cjs',
   sourceMap: true,
   plugins: [

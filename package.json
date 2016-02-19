@@ -5,9 +5,9 @@
   "main": "demo/server.js",
   "scripts": {
     "test": "mocha",
-    "build": "npm run build-client; npm run build-server",
-    "build-client": "rollup --config rollup-client.config.js",
-    "build-server": "rollup --config rollup-server.config.js",
+    "build": "npm run build-peer; npm run build-broker",
+    "build-peer": "rollup --config rollup-peer.config.js",
+    "build-broker": "rollup --config rollup-broker.config.js",
     "dev-server": "babel-node src/server/broker"
   },
   "repository": {
