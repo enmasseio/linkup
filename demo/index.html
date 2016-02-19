@@ -20,5 +20,28 @@
     <button id="connect">Connect</button>
   </p>
 
+<script>
+  "use strict";
+
+  let peer = null;
+
+  let register = document.querySelector('#register');
+  let connect = document.querySelector('#connect');
+  let from = document.querySelector('#from');
+  let to = document.querySelector('#to');
+
+  window.addEventListener('load', function load() {
+    register.onclick = function () {
+      // TODO: close previous peer (if any)
+      let id = from.value;
+      peer = hookup.createPeer(id);
+    };
+
+    connect.onclick = function () {
+      peer._connect(to.value);
+    };
+  });
+
+</script>
 </body>
 </html>
