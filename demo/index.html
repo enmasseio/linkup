@@ -5,43 +5,81 @@
   <title>hookup client demo</title>
   <!--<script src="socket.min.js"></script>-->
   <script src="../dist/peer/hookup.js"></script>
+  <style>
+    form {
+      margin: 1em 0;
+    }
+  </style>
 </head>
 <body>
   See developer console (F12)...
 
-  <p>
+  <form id="register">
     Set an id:
     <input type="text" value="peer1" id="from" />
-    <button id="register">Register</button>
-  </p>
-  <p>
-    Connect to:
+    <input type="submit" value="Register"/>
+  </form>
+  <form id="send">
+    Send a message to:
     <input type="text" value="peer2" id="to" />
-    <button id="connect">Connect</button>
-  </p>
+    message:
+    <input type="text" value="hello there!" id="message" />
+    <input type="submit" value="Send" />
+  </form>
+  <div id="messages"></div>
 
-<script>
-  "use strict";
+  <script>
+    "use strict";
 
-  let peer = null;
+    let peer = null;
 
-  let register = document.querySelector('#register');
-  let connect = document.querySelector('#connect');
-  let from = document.querySelector('#from');
-  let to = document.querySelector('#to');
+    let register = document.querySelector('#register');
+    let send = document.querySelector('#send');
+    let from = document.querySelector('#from');
+    let to = document.querySelector('#to');
+    let message = document.querySelector('#message');
+    let messages = document.querySelector('#messages');
 
-  window.addEventListener('load', function load() {
-    register.onclick = function () {
-      // TODO: close previous peer (if any)
-      let id = from.value;
-      peer = hookup.createPeer(id);
-    };
+    function logToWindow () {
+      var text = '';
+      for (var i = 0; i < arguments.length; i++) {
+        text += arguments[i] + ' ';
+      }
 
-    connect.onclick = function () {
-      peer._connect(to.value);
-    };
-  });
+      var message = document.createElement('div');
+      message.appendChild(document.createTextNode(text));
+      messages.appendChild(message);
+    }
 
-</script>
+    window.addEventListener('load', function load() {
+
+      register.onsubmit = function (event) {
+        event.preventDefault();
+
+        // close previous peer (if any)
+        if (peer) {
+          peer.close();
+        }
+
+        let peerId = from.value;
+        peer = hookup.createPeer(peerId);
+
+        peer.on('error', err => console.error(err));
+        peer.on('message', (envelope) => {
+          console.log('received message', envelope.from, envelope.message);
+          logToWindow('received message from', envelope.from, ':', envelope.message);
+        });
+      };
+
+      send.onsubmit = function (event) {
+        event.preventDefault();
+
+        logToWindow('send message from', from.value, 'to', to.value, ':', message.value);
+
+        peer.send(to.value, message.value);
+      };
+    });
+  </script>
+
 </body>
 </html>
