@@ -8,6 +8,16 @@
     form {
       margin: 1em 0;
     }
+    input[type=text] {
+      padding: 5px;
+      border: 1px solid #b5b5b5;
+    }
+    input[type=submit] {
+      padding: 5px;
+    }
+    input.peer {
+      width: 80px;
+    }
     div.log.info {
       color: dodgerblue;
     }
@@ -21,14 +31,14 @@
 
   <form id="register">
     Set an id:
-    <input type="text" value="peer1" id="from" />
+    <input type="text" class="peer" value="peer1" id="from" />
     <input type="submit" value="Register"/>
   </form>
   <form id="send">
-    Send a message to:
-    <input type="text" value="peer2" id="to" />
-    message:
+    Send message:
     <input type="text" value="hello there!" id="message" />
+    to:
+    <input type="text" class="peer" value="peer2" id="to" />
     <input type="submit" value="Send" />
   </form>
   <div id="messages"></div>
@@ -83,9 +93,11 @@
       }
     };
 
-
     window.addEventListener('load', function load() {
-
+      /**
+       * Register our peer with an id at the broker
+       * @param event
+       */
       register.onsubmit = function (event) {
         event.preventDefault();
 
@@ -98,30 +110,39 @@
         peer = hookup.createPeer(peerId);
 
         peer.on('connect', () => {
-          DOMConsole.info('connected');
+          DOMConsole.info('Connected');
         });
         peer.on('error', err => {
           console.error(err);
           DOMConsole.error(err);
         });
         peer.on('message', (envelope) => {
-          DOMConsole.log('received message from', envelope.from, ':', envelope.message);
+          DOMConsole.log('Received message from', envelope.from, ':', envelope.message);
         });
       };
 
+      /**
+       * Send a message to another peer
+       * @param event
+       */
       send.onsubmit = function (event) {
         event.preventDefault();
 
-        DOMConsole.log('sending message to', to.value, ':', message.value);
+        if (peer) {
+          DOMConsole.log('Sending message to', to.value, ':', message.value);
 
-        peer.send(to.value, message.value)
-            .then(function () {
-              DOMConsole.log('message sent');
-            })
-            .catch(function (err) {
-              console.error(err);
-              DOMConsole.error(err);
-            });
+          peer.send(to.value, message.value)
+              .then(function () {
+                DOMConsole.log('Message sent');
+              })
+              .catch(function (err) {
+                console.error(err);
+                DOMConsole.error(err);
+              });
+        }
+        else {
+          DOMConsole.error('Cannot send a message, register yourself first...');
+        }
       };
     });
   </script>
