@@ -1,7 +1,6 @@
 "use strict";
 
 import Emitter from 'emitter-component';
-import SimplePeer from 'simple-peer/simplepeer.min';
 
 import { requestify } from '../shared/requestify';
 import { initiateConnection, acceptConnection } from './Connection';
@@ -39,7 +38,10 @@ export default class Peer {
       let peerId = connection.id;
       this.connections[peerId] = connection;
 
-      connection.on('message', (message) => this.emit('message', message));
+      connection.on('message', (message) => {
+        console.log('received message from', peerId, ':', message);
+        this.emit('message', message)
+      });
       connection.on('error', (err) => this.emit('error', err));
       connection.on('close', () => {
         console.log('close', peerId);
@@ -53,7 +55,7 @@ export default class Peer {
           return this.broker.connection.request({type: 'register', id: id})
         })
         .then((id) => console.log(`Registered at broker with id ${JSON.stringify(id)}`))
-        .catch((err) => this.emit(err));
+        .catch((err) => this.emit('error', err));
   }
 
   /**
@@ -70,7 +72,7 @@ export default class Peer {
       connection.on('message', (message) => this.emit('message', message));
       connection.on('error', (err) => this.emit('error', err));
       connection.on('close', () => {
-        console.log('close', peerId);
+        console.log('disconnected from peer ', peerId);
         delete this.connections[peerId];
       });
 
@@ -86,6 +88,8 @@ export default class Peer {
    * @return {Promise.<null, Error>} resolves when disconnected
    */
   disconnect (peerId) {
+    console.log('disconnect from peer ', peerId);
+
     return new Promise((resolve, reject) => {
       let connection = this.connections[peerId];
       if (connection) {
@@ -107,10 +111,11 @@ export default class Peer {
    * @return {Promise<undefined, Error>}
    */
   send (peerId, message) {
-    console.log('sending...', peerId, message);
-    this.broker.ready
+    console.log('sending message to', peerId, ':', message);
+    return this.broker.ready
         .then(() => this.connect(peerId))
         .then(() => this.connections[peerId].peer.send(message))
+        .then(() => console.log('message sent'))
   }
 
   /**
@@ -124,18 +129,6 @@ export default class Peer {
     let promises = Object.keys(this.connections).map(peerId => this.disconnect(peerId));
 
     return Promise.all(promises);
-  }
-
-  /**
-   * Register the id of this peer at the broker
-   * @param {string} id
-   * @return {Promise.<string, Error>}
-   * @private
-   */
-  _register (id) {
-    return this.broker.ready.then(() => {
-      return this.broker.connection.request({type: 'register', id: id})
-    });
   }
 
 }

@@ -77,6 +77,8 @@ export default class Broker {
    * @return {Connection}
    */
   initiateConnection (from, to) {
+    console.log(`initiate connection from ${from} to ${to}`);
+
     let peer = new SimplePeer({
       initiator: true,
       trickle: TRICKLE,
@@ -118,17 +120,20 @@ export default class Broker {
 
           this.connection.request(message)
               .then(function (answer) {
-                console.log('answer', answer);
+                //console.log('answer', answer);
                 peer.signal(answer);
               })
               .catch(function (err) {
-                reject(err);
+                if (connecting) {
+                  connecting = false;
+                  reject(err);
+                }
               });
         }
       });
 
       peer.once('connect', () => {
-        console.log('connect', to);
+        console.log(`connected with ${to}`);
 
         if (connecting) {
           connecting = false;
@@ -153,13 +158,13 @@ export default class Broker {
       let connecting = true;
       let peer = new SimplePeer({
         initiator: false,
-        //trickle: TRICKLE
+        trickle: TRICKLE
       });
 
       let ready = new Promise((resolveReady, rejectReady) => {
         let done = false;
         peer.once('connect', () => {
-          console.log('CONNECT');
+          console.log('connected to', message.from);
           done = true;
           resolveReady(peer);
         });

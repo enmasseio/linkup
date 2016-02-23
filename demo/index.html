@@ -66,7 +66,6 @@
 
         peer.on('error', err => console.error(err));
         peer.on('message', (envelope) => {
-          console.log('received message', envelope.from, envelope.message);
           logToWindow('received message from', envelope.from, ':', envelope.message);
         });
       };
@@ -74,9 +73,11 @@
       send.onsubmit = function (event) {
         event.preventDefault();
 
-        logToWindow('send message from', from.value, 'to', to.value, ':', message.value);
+        logToWindow('send message to', to.value, ':', message.value);
 
-        peer.send(to.value, message.value);
+        peer.send(to.value, message.value).catch(function (err) {
+          console.error(err);
+        });
       };
     });
   </script>
