@@ -1,7 +1,7 @@
 import debug from 'debug/browser';
 import Peer from './Peer';
 
-const BROKER_URL = 'ws://localhost:3000'; // TODO: change to online hosted broker
+const BROKER_URL = 'ws://hookitup.herokuapp.com';
 
 /**
  * Create a new Peer

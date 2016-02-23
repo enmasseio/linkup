@@ -111,5 +111,5 @@ function createServer (port) {
   return app;
 }
 
-var PORT = 3000;
+var PORT = process.env.PORT || 5000;
 createServer(PORT);
