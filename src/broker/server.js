@@ -96,7 +96,7 @@ function createServer (port) {
 
       let to = find(message.to);
       if (!to) {
-        throw new Error(`Peer not found (message.to: ${message.to}})`);
+        throw new Error(`Peer not found (${message.to})`);
       }
       return to.request(message);
     }

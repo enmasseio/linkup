@@ -10,7 +10,8 @@
     "build-peer": "rollup --config rollup-peer.config.js",
     "build-broker": "rollup --config rollup-broker.config.js",
     "watch": "watch 'npm run build' ./src",
-    "dev-server": "DEBUG=hookup:* babel-node src/broker/server.js"
+    "dev-server": "DEBUG=hookup:* babel-node src/broker/server.js",
+    "deploy": "git push heroku master"
   },
   "repository": {
     "type": "git",

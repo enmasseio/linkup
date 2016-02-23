@@ -109,8 +109,8 @@
         let peerId = from.value;
         peer = hookup.createPeer(peerId);
 
-        peer.on('connect', () => {
-          DOMConsole.info('Connected');
+        peer.on('register', () => {
+          DOMConsole.info('Registered as', peerId);
         });
         peer.on('error', err => {
           console.error(err);
@@ -129,9 +129,11 @@
         event.preventDefault();
 
         if (peer) {
-          DOMConsole.log('Sending message to', to.value, ':', message.value);
+          var text = message.value;
+          message.value = '';
+          DOMConsole.log('Sending message to', to.value, ':', text);
 
-          peer.send(to.value, message.value)
+          peer.send(to.value, text)
               .then(function () {
                 DOMConsole.log('Message sent');
               })

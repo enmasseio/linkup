@@ -37,15 +37,21 @@ export default class Peer {
      */
     this.broker = new Broker(brokerUrl);
     this.broker.on('connection', (connection) => this._acceptConnection(connection));
+    this.broker.on('open', () => this._register());
+  }
 
-    // register the peer's id once connected
+  /**
+   * Register the peer with it's id at the broker
+   * @private
+   */
+  _register () {
     this.broker.ready
         .then(() => {
-          return this.broker.connection.request({type: 'register', id: id})
+          return this.broker.connection.request({type: 'register', id: this.id})
         })
         .then((id) => {
           debug(`Registered at broker with id ${JSON.stringify(id)}`);
-          this.emit('connect');
+          this.emit('register');
         })
         .catch((err) => this.emit('error', err));
   }

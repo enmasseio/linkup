@@ -54,6 +54,8 @@ export default class Broker {
       this.socket.onopen = () => {
         debug(`Connected to broker ${url}`);
 
+        this.emit('open');
+
         if (connecting) {
           connecting = false;
           resolve();
@@ -61,6 +63,7 @@ export default class Broker {
       };
 
       this.socket.onclose = () => {
+        this.emit('close');
         debug('Disconnected from broker');
       };
 
