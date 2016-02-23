@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>hookup client demo</title>
-  <!--<script src="socket.min.js"></script>-->
   <script src="../dist/peer/hookup.js"></script>
   <style>
     form {
       margin: 1em 0;
+    }
+    div.log.info {
+      color: dodgerblue;
+    }
+    div.log.error {
+      color: orangered;
     }
   </style>
 </head>
@@ -31,6 +36,8 @@
   <script>
     "use strict";
 
+    console.info('To enable debugging, enter hookupDebug.enable(\'hookup:*\') in this console, then refresh the page');
+
     let peer = null;
 
     let register = document.querySelector('#register');
@@ -40,16 +47,42 @@
     let message = document.querySelector('#message');
     let messages = document.querySelector('#messages');
 
-    function logToWindow () {
-      var text = '';
-      for (var i = 0; i < arguments.length; i++) {
-        text += arguments[i] + ' ';
+    function argumentsToArray (args) {
+      let array = [];
+      for (var i = 0; i < args.length; i++) {
+        array.push(args[i]);
       }
-
-      var message = document.createElement('div');
-      message.appendChild(document.createTextNode(text));
-      messages.appendChild(message);
+      return array;
     }
+
+    let DOMConsole = {
+      log: function () {
+        let text = argumentsToArray(arguments).join(' ');
+
+        var message = document.createElement('div');
+        message.appendChild(document.createTextNode(text));
+        messages.appendChild(message);
+      },
+
+      info: function () {
+        let text = argumentsToArray(arguments).join(' ');
+
+        var message = document.createElement('div');
+        message.className = 'log info';
+        message.appendChild(document.createTextNode(text));
+        messages.appendChild(message);
+      },
+
+      error: function () {
+        let text = argumentsToArray(arguments).join(' ');
+
+        var message = document.createElement('div');
+        message.className = 'log error';
+        message.appendChild(document.createTextNode(text));
+        messages.appendChild(message);
+      }
+    };
+
 
     window.addEventListener('load', function load() {
 
@@ -64,20 +97,31 @@
         let peerId = from.value;
         peer = hookup.createPeer(peerId);
 
-        peer.on('error', err => console.error(err));
+        peer.on('connect', () => {
+          DOMConsole.info('connected');
+        });
+        peer.on('error', err => {
+          console.error(err);
+          DOMConsole.error(err);
+        });
         peer.on('message', (envelope) => {
-          logToWindow('received message from', envelope.from, ':', envelope.message);
+          DOMConsole.log('received message from', envelope.from, ':', envelope.message);
         });
       };
 
       send.onsubmit = function (event) {
         event.preventDefault();
 
-        logToWindow('send message to', to.value, ':', message.value);
+        DOMConsole.log('sending message to', to.value, ':', message.value);
 
-        peer.send(to.value, message.value).catch(function (err) {
-          console.error(err);
-        });
+        peer.send(to.value, message.value)
+            .then(function () {
+              DOMConsole.log('message sent');
+            })
+            .catch(function (err) {
+              console.error(err);
+              DOMConsole.error(err);
+            });
       };
     });
   </script>

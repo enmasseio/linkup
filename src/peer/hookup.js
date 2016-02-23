@@ -1,3 +1,4 @@
+import debug from 'debug/browser';
 import Peer from './Peer';
 
 const BROKER_URL = 'ws://localhost:3000'; // TODO: change to online hosted broker
@@ -11,3 +12,9 @@ const BROKER_URL = 'ws://localhost:3000'; // TODO: change to online hosted broke
 export function createPeer (id, brokerUrl = BROKER_URL) {
   return new Peer(id, brokerUrl);
 }
+
+// expose debugging object to the window
+// To activate debugging:
+//
+//   hookupDebug.enable('hookup:*')
+window.hookupDebug = debug;

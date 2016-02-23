@@ -1,9 +1,14 @@
 import Emitter from 'emitter-component';
 import ReconnectingWebSocket from 'reconnectingwebsocket';
 import SimplePeer from 'simple-peer/simplepeer.min';
+import debugFactory from 'debug/browser';
 
 import { requestify } from '../shared/requestify';
 import { Connection } from './Connection';
+
+let debug = debugFactory('hookup:broker');
+let debugSocket = debugFactory('hookup:socket');
+let debugWebRTC = debugFactory('hookup:webrtc');
 
 const TRICKLE = false;
 
@@ -23,11 +28,11 @@ export default class Broker {
     // requestify the WebSocket
     this.connection = requestify();
     this.connection.send = (message) => {
-      console.log('send message', message);
+      debugSocket('send message', message);
       this.socket.send(message);
     };
     this.socket.onmessage = (event) => {
-      console.log('receive message', event.data);
+      debugSocket('receive message', event.data);
       this.connection.receive(event.data);
     };
 
@@ -47,18 +52,21 @@ export default class Broker {
     this.ready = new Promise((resolve, reject) => {
       let connecting = true;
       this.socket.onopen = () => {
-        console.log(`Connected to broker ${url}`);
+        debug(`Connected to broker ${url}`);
+
         if (connecting) {
           connecting = false;
           resolve();
         }
       };
 
-      this.socket.onclose = function () {
-        console.log('Disconnected from broker');
+      this.socket.onclose = () => {
+        debug('Disconnected from broker');
       };
 
-      this.socket.onerror = function (err) {
+      this.socket.onerror = (err) => {
+        debug('Error', err);
+
         if (connecting) {
           connecting = false;
           reject(err);
@@ -77,7 +85,7 @@ export default class Broker {
    * @return {Connection}
    */
   initiateConnection (from, to) {
-    console.log(`initiate connection from ${from} to ${to}`);
+    debug(`initiate connection from ${from} to ${to}`);
 
     let peer = new SimplePeer({
       initiator: true,
@@ -113,14 +121,14 @@ export default class Broker {
       });
 
       peer.on('signal', (data) => {
-        //console.log('signal', JSON.stringify(data));
+        debugWebRTC('signal', data);
 
         if (data.type === 'offer') {
           let message = { type: 'connect', from, to, offer: data };
 
           this.connection.request(message)
               .then(function (answer) {
-                //console.log('answer', answer);
+                debugWebRTC('answer', answer);
                 peer.signal(answer);
               })
               .catch(function (err) {
@@ -133,7 +141,7 @@ export default class Broker {
       });
 
       peer.once('connect', () => {
-        console.log(`connected with ${to}`);
+        debug(`connected with ${to}`);
 
         if (connecting) {
           connecting = false;
@@ -152,7 +160,7 @@ export default class Broker {
    * @private
    */
   _acceptConnection (message) {
-    console.log('acceptConnection', message);
+    debug('acceptConnection', message);
 
     return new Promise((resolve, reject) => {
       let connecting = true;
@@ -164,7 +172,7 @@ export default class Broker {
       let ready = new Promise((resolveReady, rejectReady) => {
         let done = false;
         peer.once('connect', () => {
-          console.log('connected to', message.from);
+          debug('connected to', message.from);
           done = true;
           resolveReady(peer);
         });
@@ -177,7 +185,7 @@ export default class Broker {
       });
 
       peer.on('signal', function (data) {
-        console.log('signal', data);
+        debugWebRTC('signal', data);
 
         // receive the answer
         if (data.type === 'answer') {
@@ -191,7 +199,7 @@ export default class Broker {
       peer.once('error', reject);
 
       peer.on('error', function (err) {
-        console.error(err);
+        debugWebRTC('Error', err);
         if (connecting) {
           connecting = false;
           reject(err);

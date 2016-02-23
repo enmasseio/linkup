@@ -1,10 +1,13 @@
 "use strict";
 
 import Emitter from 'emitter-component';
+import debugFactory from 'debug/browser';
 
 import { requestify } from '../shared/requestify';
 import { initiateConnection, acceptConnection } from './Connection';
 import Broker from './Broker';
+
+let debug = debugFactory('hookup:peer');
 
 export default class Peer {
   /**
@@ -33,28 +36,17 @@ export default class Peer {
      * @type {Broker}
      */
     this.broker = new Broker(brokerUrl);
-    this.broker.on('connection', (connection) => {
-      // add the new connection to the map with open connections
-      let peerId = connection.id;
-      this.connections[peerId] = connection;
-
-      connection.on('message', (message) => {
-        console.log('received message from', peerId, ':', message);
-        this.emit('message', message)
-      });
-      connection.on('error', (err) => this.emit('error', err));
-      connection.on('close', () => {
-        console.log('close', peerId);
-        delete this.connections[peerId];
-      });
-    });
+    this.broker.on('connection', (connection) => this._acceptConnection(connection));
 
     // register the peer's id once connected
     this.broker.ready
         .then(() => {
           return this.broker.connection.request({type: 'register', id: id})
         })
-        .then((id) => console.log(`Registered at broker with id ${JSON.stringify(id)}`))
+        .then((id) => {
+          debug(`Registered at broker with id ${JSON.stringify(id)}`);
+          this.emit('connect');
+        })
         .catch((err) => this.emit('error', err));
   }
 
@@ -72,7 +64,7 @@ export default class Peer {
       connection.on('message', (message) => this.emit('message', message));
       connection.on('error', (err) => this.emit('error', err));
       connection.on('close', () => {
-        console.log('disconnected from peer ', peerId);
+        debug('disconnected from peer ', peerId);
         delete this.connections[peerId];
       });
 
@@ -83,12 +75,33 @@ export default class Peer {
   }
 
   /**
+   * Accept an incoming connection
+   * @param {{id: string, peer: SimplePeer, ready: Promise}} connection
+   * @private
+   */
+  _acceptConnection (connection) {
+    // add the new connection to the map with open connections
+    let peerId = connection.id;
+    this.connections[peerId] = connection;
+
+    connection.on('message', (message) => {
+      debug('received message from', peerId, ':', message);
+      this.emit('message', message)
+    });
+    connection.on('error', (err) => this.emit('error', err));
+    connection.on('close', () => {
+      debug('closed connection with ', peerId);
+      delete this.connections[peerId];
+    });
+  }
+
+  /**
    * Disconnect from a peer
    * @param {string} peerId
    * @return {Promise.<null, Error>} resolves when disconnected
    */
   disconnect (peerId) {
-    console.log('disconnect from peer ', peerId);
+    debug('disconnect from peer ', peerId);
 
     return new Promise((resolve, reject) => {
       let connection = this.connections[peerId];
@@ -111,11 +124,11 @@ export default class Peer {
    * @return {Promise<undefined, Error>}
    */
   send (peerId, message) {
-    console.log('sending message to', peerId, ':', message);
+    debug('sending message to', peerId, ':', message);
     return this.broker.ready
         .then(() => this.connect(peerId))
         .then(() => this.connections[peerId].peer.send(message))
-        .then(() => console.log('message sent'))
+        .then(() => debug('message sent'))
   }
 
   /**
