@@ -29,6 +29,8 @@
   },
   "homepage": "https://github.com/enmasseio/hookup#readme",
   "dependencies": {
+    "babel-cli": "6.5.1",
+    "babel-preset-es2015-rollup": "1.1.1",
     "debug": "2.2.0",
     "emitter-component": "1.1.1",
     "express": "4.13.4",
@@ -36,8 +38,6 @@
     "ws": "1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "6.5.1",
-    "babel-preset-es2015-rollup": "1.1.1",
     "mocha": "2.4.5",
     "reconnectingwebsocket": "1.0.0",
     "rollup": "0.25.3",
