@@ -2,7 +2,7 @@
   "name": "linkup",
   "version": "0.0.1",
   "description": "Link up peers by id using a WebRTC connection",
-  "main": "demo/server.js",
+  "main": "dist/peer/linkup.js",
   "scripts": {
     "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
     "test": "mocha",
