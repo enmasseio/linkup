@@ -66,6 +66,14 @@ function createServer (port) {
 
   var functions = {
     /**
+     * A simple ping function, used to keep a WebSocket alive
+     * @return {string}
+     */
+    ping: function () {
+      return 'pong';
+    },
+
+    /**
      * Register an id for a peer
      * @param {Object} connection
      * @param {{type: 'register', id: string}} message
