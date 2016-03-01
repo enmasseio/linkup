@@ -48,7 +48,6 @@
 
     console.info('To enable debugging, enter hookupDebug.enable(\'hookup:*\') in this console, then refresh the page');
 
-    let BROKER_URL = 'ws://hookitup.herokuapp.com';
     let peer = null;
 
     let register = document.querySelector('#register');
@@ -108,7 +107,7 @@
         }
 
         let peerId = from.value;
-        peer = hookup.createPeer(peerId, BROKER_URL);
+        peer = hookup.createPeer(peerId);
 
         peer.on('register', () => {
           DOMConsole.info('Registered as', peerId);

@@ -4,8 +4,8 @@
   "description": "Hook up with peers by id using a WebRTC connection",
   "main": "demo/server.js",
   "scripts": {
-    "start": "node index.js",
-    "start-real": "npm run build; DEBUG=hookup:* node dist/broker/server.js",
+    "start-experiment": "node index.js",
+    "start": "npm run build; DEBUG=hookup:* node dist/broker/server.js",
     "test": "mocha",
     "build": "npm run build-peer; npm run build-broker; npm run copy-demo",
     "build-peer": "rollup --config rollup-peer.config.js",
