@@ -48,26 +48,26 @@
 
     console.info('To enable debugging, enter hookupDebug.enable(\'hookup:*\') in this console, then refresh the page');
 
-    let peer = null;
+    var peer = null;
 
-    let register = document.querySelector('#register');
-    let send = document.querySelector('#send');
-    let from = document.querySelector('#from');
-    let to = document.querySelector('#to');
-    let message = document.querySelector('#message');
-    let messages = document.querySelector('#messages');
+    var register = document.querySelector('#register');
+    var send = document.querySelector('#send');
+    var from = document.querySelector('#from');
+    var to = document.querySelector('#to');
+    var message = document.querySelector('#message');
+    var messages = document.querySelector('#messages');
 
     function argumentsToArray (args) {
-      let array = [];
+      var array = [];
       for (var i = 0; i < args.length; i++) {
         array.push(args[i]);
       }
       return array;
     }
 
-    let DOMConsole = {
+    var DOMConsole = {
       log: function () {
-        let text = argumentsToArray(arguments).join(' ');
+        var text = argumentsToArray(arguments).join(' ');
 
         var message = document.createElement('div');
         message.appendChild(document.createTextNode(text));
@@ -75,7 +75,7 @@
       },
 
       info: function () {
-        let text = argumentsToArray(arguments).join(' ');
+        var text = argumentsToArray(arguments).join(' ');
 
         var message = document.createElement('div');
         message.className = 'log info';
@@ -84,7 +84,7 @@
       },
 
       error: function () {
-        let text = argumentsToArray(arguments).join(' ');
+        var text = argumentsToArray(arguments).join(' ');
 
         var message = document.createElement('div');
         message.className = 'log error';
@@ -98,7 +98,7 @@
        * Register our peer with an id at the broker
        * @param event
        */
-      register.onsubmit = function (event) {
+      register.addEventListener('submit', function (event) {
         event.preventDefault();
 
         // close previous peer (if any)
@@ -106,28 +106,26 @@
           peer.close();
         }
 
-        let peerId = from.value;
+        var peerId = from.value;
         peer = hookup.createPeer(peerId);
 
-        peer.on('register', () => {
+        peer.on('register', function () {
           DOMConsole.info('Registered as', peerId);
         });
-        peer.on('error', err => {
+        peer.on('error', function (err) {
           console.error(err);
           DOMConsole.error(err);
         });
-        peer.on('message', (envelope) => {
+        peer.on('message', function (envelope) {
           DOMConsole.log('Received message from', envelope.from, ':', envelope.message);
         });
-
-        return false; // for Safari
-      };
+      });
 
       /**
        * Send a message to another peer
        * @param event
        */
-      send.onsubmit = function (event) {
+      send.addEventListener('submit', function (event) {
         event.preventDefault();
 
         if (peer) {
@@ -147,9 +145,7 @@
         else {
           DOMConsole.error('Cannot send a message, register yourself first...');
         }
-
-        return false; // for Safari
-      };
+      });
     });
   </script>
 
