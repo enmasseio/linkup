@@ -6,9 +6,9 @@ import debugFactory from 'debug/browser';
 import { requestify } from '../shared/requestify';
 import { Connection } from './Connection';
 
-let debug = debugFactory('hookup:broker');
-let debugSocket = debugFactory('hookup:socket');
-let debugWebRTC = debugFactory('hookup:webrtc');
+let debug = debugFactory('linkup:broker');
+let debugSocket = debugFactory('linkup:socket');
+let debugWebRTC = debugFactory('linkup:webrtc');
 
 const TRICKLE = true;
 

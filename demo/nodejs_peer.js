@@ -1,10 +1,10 @@
 'use strict';
 
-const hookup = require('../src/peer/hookup');
+const linkup = require('../src/peer/linkup');
 
 const peerId = 'peer2';
 
-let peer = hookup.createPeer(peerId);
+let peer = linkup.createPeer(peerId);
 
 peer.on('register', () => {
   console.info('Registered as', peerId);

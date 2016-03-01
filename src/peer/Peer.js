@@ -7,7 +7,7 @@ import { requestify } from '../shared/requestify';
 import { initiateConnection, acceptConnection } from './Connection';
 import Broker from './Broker';
 
-let debug = debugFactory('hookup:peer');
+let debug = debugFactory('linkup:peer');
 
 export default class Peer {
   /**

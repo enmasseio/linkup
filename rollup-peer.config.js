@@ -4,10 +4,10 @@ import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
-  entry: 'src/peer/hookup.js',
-  dest: 'dist/peer/hookup.js',
+  entry: 'src/peer/linkup.js',
+  dest: 'dist/peer/linkup.js',
   format: 'umd',
-  moduleName: 'hookup',
+  moduleName: 'linkup',
   sourceMap: true,
   plugins: [
     nodeResolve({

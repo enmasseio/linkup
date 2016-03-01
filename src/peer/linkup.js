@@ -1,12 +1,12 @@
 import debug from 'debug/browser';
 import Peer from './Peer';
 
-const BROKER_URL = 'wss://hookitup.herokuapp.com';
+const BROKER_URL = 'wss://linkup-broker.herokuapp.com';
 
 /**
  * Create a new Peer
  * @param {string} id
- * @param {string} [brokerUrl='wss://hookitup.herokuapp.com']
+ * @param {string} [brokerUrl='wss://linkup-broker.herokuapp.com']
  * @return {Peer}
  */
 export function createPeer (id, brokerUrl = BROKER_URL) {
@@ -16,7 +16,7 @@ export function createPeer (id, brokerUrl = BROKER_URL) {
 // expose debugging object to the window
 // To activate debugging:
 //
-//   hookupDebug.enable('hookup:*')
+//   linkupDebug.enable('linkup:*')
 if (typeof window !== 'undefined') {
-  window.hookupDebug = debug;
+  window.linkupDebug = debug;
 }

@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>hookup client demo</title>
-  <script src="http://hookitup.herokuapp.com/hookup.js"></script>
+  <title>linkup client demo</title>
+  <script src="http://linkup-broker.herokuapp.com/linkup.js"></script>
   <style>
     form {
       margin: 1em 0;
@@ -46,7 +46,7 @@
   <script>
     "use strict";
 
-    console.info('To enable debugging, enter hookupDebug.enable(\'hookup:*\') in this console, then refresh the page');
+    console.info('To enable debugging, enter linkupDebug.enable(\'linkup:*\') in this console, then refresh the page');
 
     var peer = null;
 
@@ -107,7 +107,7 @@
         }
 
         var peerId = from.value;
-        peer = hookup.createPeer(peerId);
+        peer = linkup.createPeer(peerId);
 
         peer.on('register', function () {
           DOMConsole.info('Registered as', peerId);

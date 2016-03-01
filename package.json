@@ -1,23 +1,23 @@
 {
   "name": "linkup",
   "version": "0.0.1",
-  "description": "Hook up with peers by id using a WebRTC connection",
+  "description": "Link up peers by id using a WebRTC connection",
   "main": "demo/server.js",
   "scripts": {
-    "start": "npm run build; DEBUG=hookup:* node dist/broker/server.js",
+    "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
     "test": "mocha",
     "build": "npm run build-peer; npm run build-broker; npm run copy-demo; npm run replace-demo",
     "build-peer": "rollup --config rollup-peer.config.js",
     "build-broker": "rollup --config rollup-broker.config.js",
     "copy-demo": "cp demo/browser_peer.html dist/peer/index.html; ",
-    "replace-demo": "replace '<script src=\"http://hookitup.herokuapp.com/hookup.js\"></script>' '<script src=\"hookup.js\"></script>' dist/peer/index.html",
+    "replace-demo": "replace '<script src=\"http://linkup-broker.herokuapp.com/linkup.js\"></script>' '<script src=\"linkup.js\"></script>' dist/peer/index.html",
     "watch": "watch 'npm run build' ./src",
-    "dev-server": "DEBUG=hookup:* babel-node src/broker/server.js",
+    "dev-server": "DEBUG=linkup:* babel-node src/broker/server.js",
     "deploy": "git push heroku master"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/enmasseio/hookup.git"
+    "url": "git+https://github.com/enmasseio/linkup.git"
   },
   "keywords": [
     "webrtc",
@@ -28,9 +28,9 @@
   "author": "Jos de Jong",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/enmasseio/hookup/issues"
+    "url": "https://github.com/enmasseio/linkup/issues"
   },
-  "homepage": "https://github.com/enmasseio/hookup#readme",
+  "homepage": "https://github.com/enmasseio/linkup#readme",
   "dependencies": {
     "babel-cli": "6.5.1",
     "babel-preset-es2015-rollup": "1.1.1",

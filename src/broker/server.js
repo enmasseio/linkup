@@ -13,8 +13,8 @@ import { requestify } from '../shared/requestify';
 function createServer (port) {
   port = port || 3000;
 
-  var debug = require('debug')('hookup:server');
-  var debugSocket = require('debug')('hookup:socket');
+  var debug = require('debug')('linkup:server');
+  var debugSocket = require('debug')('linkup:socket');
   var app = express();
   var server = require('http').createServer();
 
@@ -81,7 +81,7 @@ function createServer (port) {
      */
     register: function (connection, message) {
       var id = register(connection, message.id);
-      connection.hookupId = id;
+      connection.linkupId = id;
       return id;
     },
 
@@ -101,9 +101,9 @@ function createServer (port) {
      * @return {Promise.<{answer: string}, Error>}
      */
     connect: function (connection, message) {
-      if (message.from !== connection.hookupId) {
+      if (message.from !== connection.linkupId) {
         throw new Error(
-            `Invalid id. message.from (${JSON.stringify(message.from)}) does not match the id of the the connection (${JSON.stringify(connection.hookupId)})`)
+            `Invalid id. message.from (${JSON.stringify(message.from)}) does not match the id of the the connection (${JSON.stringify(connection.linkupId)})`)
       }
 
       let to = find(message.to);
