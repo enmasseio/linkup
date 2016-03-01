@@ -108,7 +108,7 @@
         }
 
         let peerId = from.value;
-        peer = hookup.createPeer(peerId);
+        peer = hookup.createPeer(peerId, BROKER_URL);
 
         peer.on('register', () => {
           DOMConsole.info('Registered as', peerId);
