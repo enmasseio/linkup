@@ -108,6 +108,26 @@ To run the generated the generated code for the broker server:
 node dist/broker/server
 ```
 
+### Deploy
+
+To deploy to heroku, first set a git remote to your heroku application:
+
+```bash
+$ heroku git:remote -a my-heroku-app
+```
+
+Then force heroku to install all devDependencies, as it has to built the server application on startup:
+
+```bash
+$ heroku config:set NPM_CONFIG_PRODUCTION=false
+```
+
+To deploy:
+
+```
+npm run deploy
+```
+
 
 ## License
 
