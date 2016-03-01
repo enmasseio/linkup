@@ -6,9 +6,10 @@
   "scripts": {
     "start": "npm run dev-server",
     "test": "mocha",
-    "build": "npm run build-peer; npm run build-broker",
+    "build": "npm run build-peer; npm run build-broker; npm run copy-demo",
     "build-peer": "rollup --config rollup-peer.config.js",
     "build-broker": "rollup --config rollup-broker.config.js",
+    "copy-demo": "cp demo/browser_peer.html dist/peer/index.html",
     "watch": "watch 'npm run build' ./src",
     "dev-server": "DEBUG=hookup:* babel-node src/broker/server.js",
     "deploy": "git push heroku master"

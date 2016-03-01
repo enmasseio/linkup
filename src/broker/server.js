@@ -13,11 +13,15 @@ import { requestify } from '../shared/requestify';
 function createServer (port) {
   port = port || 3000;
 
-  var app = express();
-  var server = require('http').createServer();
-  var wss = new WebSocketServer({ server: server });
   var debug = require('debug')('hookup:server');
   var debugSocket = require('debug')('hookup:socket');
+  var app = express();
+  var server = require('http').createServer();
+
+  // serve static files from folder dist/peer
+  app.use(express.static('dist/peer'));
+
+  var wss = new WebSocketServer({ server: server });
 
   wss.on('connection', function connection(socket) {
     var location = url.parse(socket.upgradeReq.url, true);

@@ -17,4 +17,6 @@ export function createPeer (id, brokerUrl = BROKER_URL) {
 // To activate debugging:
 //
 //   hookupDebug.enable('hookup:*')
-window.hookupDebug = debug;
+if (typeof window !== 'undefined') {
+  window.hookupDebug = debug;
+}

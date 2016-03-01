@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>hookup client demo</title>
-  <script src="../dist/peer/hookup.js"></script>
+  <script src="http://hookitup.herokuapp.com/hookup.js"></script>
   <style>
     form {
       margin: 1em 0;
@@ -48,6 +48,7 @@
 
     console.info('To enable debugging, enter hookupDebug.enable(\'hookup:*\') in this console, then refresh the page');
 
+    let BROKER_URL = 'ws://hookitup.herokuapp.com';
     let peer = null;
 
     let register = document.querySelector('#register');
