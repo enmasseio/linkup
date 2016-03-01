@@ -92,7 +92,7 @@ export default class Peer {
 
     connection.on('message', (message) => {
       debug('received message from', peerId, ':', message);
-      this.emit('message', message)
+      this.emit('message', JSON.parse(message));
     });
     connection.on('error', (err) => this.emit('error', err));
     connection.on('close', () => {
@@ -133,7 +133,7 @@ export default class Peer {
     debug('sending message to', peerId, ':', message);
     return this.broker.ready
         .then(() => this.connect(peerId))
-        .then(() => this.connections[peerId].peer.send(message))
+        .then(() => this.connections[peerId].peer.send(JSON.stringify(message)))
         .then(() => debug('message sent'))
   }
 
