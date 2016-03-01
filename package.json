@@ -5,7 +5,7 @@
   "main": "dist/linkup.js",
   "scripts": {
     "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
-    "test": "mocha",
+    "test": "mocha --compilers js:babel-register",
     "build": "npm run build-peer; npm run build-broker; npm run copy-demo; npm run replace-demo",
     "build-peer": "rollup --config rollup-peer.config.js",
     "build-broker": "rollup --config rollup-broker.config.js",
@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "babel-cli": "6.5.1",
+    "babel-register": "6.6.0",
     "mocha": "2.4.5",
     "watch": "0.17.1"
   }
