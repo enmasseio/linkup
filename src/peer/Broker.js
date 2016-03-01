@@ -10,14 +10,14 @@ let debug = debugFactory('hookup:broker');
 let debugSocket = debugFactory('hookup:socket');
 let debugWebRTC = debugFactory('hookup:webrtc');
 
-const TRICKLE = false;
+const TRICKLE = true;
 
 export default class Broker {
   /**
    * Create a new Broker
    * @param {string} url
    */
-  constructor (url) {
+  constructor (url) {  // TODO: allow passing webrtc options like trickle
     // Turn the broker into an event emitter
     Emitter(this);
 
