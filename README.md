@@ -1,5 +1,17 @@
-# hookup
-Hook up with peers by id using a WebRTC connection
+# linkup
+
+Link up peers by id using a WebRTC connection
+
+
+## Use
+
+TODO: describe how to use. For now: see folder demo
+
+
+## Inspiration
+
+- https://github.com/js-platform/p2p
+- https://webtorrent.io/
 
 
 ## Develop
