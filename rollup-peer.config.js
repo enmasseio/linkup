@@ -5,7 +5,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
   entry: 'src/peer/linkup.js',
-  dest: 'dist/peer/linkup.js',
+  dest: 'dist/linkup.js',
   format: 'umd',
   moduleName: 'linkup',
   sourceMap: true,

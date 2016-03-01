@@ -2,15 +2,15 @@
   "name": "linkup",
   "version": "0.0.1",
   "description": "Link up peers by id using a WebRTC connection",
-  "main": "dist/peer/linkup.js",
+  "main": "dist/linkup.js",
   "scripts": {
     "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
     "test": "mocha",
     "build": "npm run build-peer; npm run build-broker; npm run copy-demo; npm run replace-demo",
     "build-peer": "rollup --config rollup-peer.config.js",
     "build-broker": "rollup --config rollup-broker.config.js",
-    "copy-demo": "cp demo/browser_peer.html dist/peer/index.html; ",
-    "replace-demo": "replace '<script src=\"http://linkup-broker.herokuapp.com/linkup.js\"></script>' '<script src=\"linkup.js\"></script>' dist/peer/index.html",
+    "copy-demo": "cp demo/browser_peer.html dist/index.html; ",
+    "replace-demo": "replace '<script src=\"http://linkup-broker.herokuapp.com/linkup.js\"></script>' '<script src=\"linkup.js\"></script>' dist/index.html",
     "watch": "watch 'npm run build' ./src",
     "dev-server": "DEBUG=linkup:* babel-node src/broker/server.js",
     "deploy": "git push heroku master"
@@ -32,7 +32,6 @@
   },
   "homepage": "https://github.com/enmasseio/linkup#readme",
   "dependencies": {
-    "babel-cli": "6.5.1",
     "babel-preset-es2015-rollup": "1.1.1",
     "debug": "2.2.0",
     "emitter-component": "1.1.1",
@@ -49,6 +48,7 @@
     "ws": "1.0.1"
   },
   "devDependencies": {
+    "babel-cli": "6.5.1",
     "mocha": "2.4.5",
     "watch": "0.17.1"
   }

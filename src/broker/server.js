@@ -18,8 +18,8 @@ function createServer (port) {
   var app = express();
   var server = require('http').createServer();
 
-  // serve static files from folder dist/peer
-  app.use(express.static('dist/peer'));
+  // serve static files from folder dist
+  app.use(express.static('dist'));
 
   var wss = new WebSocketServer({ server: server });
 

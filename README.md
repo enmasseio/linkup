@@ -36,7 +36,7 @@ $ npm install linkup
 <html>
 <head>
   <!-- load the linkup client library -->
-  <script src="dist/peer/linkup.js"></script>
+  <script src="dist/linkup.js"></script>
 
   <script>
     // create a peer with some id
