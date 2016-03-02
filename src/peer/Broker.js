@@ -91,7 +91,11 @@ export default class Broker {
 
     return this._waitUntilRegistered()
         // first check whether this peer exists
-        .then(() => {
+        .then((peerId) => {
+          if (to === peerId) {
+            throw new Error('Cannot connect to yourself dude');
+          }
+
           return this.connection.request({type: 'find', id: to})
         })
         .then((peer) => {
