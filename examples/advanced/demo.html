@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>linkup client demo</title>
+
+  <script src="../../dist/linkup.js"></script>
+  <style>
+    .demo {
+      background: #f5f5f5;
+      display: inline-block;
+      padding: 5px 20px;
+    }
+    #messages {
+      min-height: 300px;
+      background: #eeeeee;
+      border: 1px solid #b5b5b5;
+      margin: 1em 0;
+      padding: 5px;
+    }
+    form {
+      margin: 1em 0;
+    }
+    input[type=text] {
+      padding: 5px;
+      border: 1px solid #b5b5b5;
+    }
+    input[type=submit] {
+      padding: 5px;
+    }
+    input.peer {
+      width: 80px;
+    }
+    div.log.info {
+      color: dodgerblue;
+    }
+    div.log.error {
+      color: orangered;
+    }
+  </style>
+</head>
+<body>
+
+<div class="demo">
+  <form id="register">
+    Set an id:
+    <input type="text" class="peer" value="peer1" id="from" />
+    <input type="submit" value="Register"/>
+  </form>
+  <form id="send">
+    Send message:
+    <input type="text" value="hello there!" id="message" />
+    to:
+    <input type="text" class="peer" value="peer2" id="to" />
+    <input type="submit" value="Send" />
+  </form>
+  <div id="messages"></div>
+</div>
+
+<script>
+  "use strict";
+
+  console.info('To enable debugging, enter linkupDebug.enable(\'linkup:*\') in this console, then refresh the page');
+
+  var peer = null;
+  var register = document.querySelector('#register');
+  var send = document.querySelector('#send');
+  var from = document.querySelector('#from');
+  var to = document.querySelector('#to');
+  var message = document.querySelector('#message');
+  var messages = document.querySelector('#messages');
+
+  /**
+   * Register our peer with an id at the broker
+   * @param event
+   */
+  register.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    // close previous peer (if any)
+    if (peer) {
+      peer.close();
+    }
+
+    var peerId = from.value;
+    peer = linkup.createPeer(peerId);
+
+    peer.on('register', function () {
+      DOMConsole.info('Registered as', peerId);
+    });
+    peer.on('error', function (err) {
+      console.error(err);
+      DOMConsole.error(err);
+    });
+    peer.on('message', function (envelope) {
+      DOMConsole.log('Received message from', envelope.from, ':', envelope.message);
+    });
+  });
+
+  /**
+   * Send a message to another peer
+   * @param event
+   */
+  send.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    if (peer) {
+      var text = message.value;
+      message.select();
+      DOMConsole.log('Sending message to', to.value, ':', text);
+
+      peer.send(to.value, text)
+          .then(function () {
+            DOMConsole.log('Message sent');
+          })
+          .catch(function (err) {
+            console.error(err);
+            DOMConsole.error(err);
+          });
+    }
+    else {
+      DOMConsole.error('Cannot send a message, register yourself first...');
+    }
+  });
+
+  var DOMConsole = {
+    log: function () {
+      var text = argumentsToArray(arguments).join(' ');
+
+      var message = document.createElement('div');
+      message.appendChild(document.createTextNode(text));
+      messages.appendChild(message);
+    },
+
+    info: function () {
+      var text = argumentsToArray(arguments).join(' ');
+
+      var message = document.createElement('div');
+      message.className = 'log info';
+      message.appendChild(document.createTextNode(text));
+      messages.appendChild(message);
+    },
+
+    error: function () {
+      var text = argumentsToArray(arguments).join(' ');
+
+      var message = document.createElement('div');
+      message.className = 'log error';
+      message.appendChild(document.createTextNode(text));
+      messages.appendChild(message);
+    }
+  };
+
+  function argumentsToArray (args) {
+    var array = [];
+    for (var i = 0; i < args.length; i++) {
+      array.push(args[i]);
+    }
+    return array;
+  }
+
+</script>
+
+</body>
+</html>

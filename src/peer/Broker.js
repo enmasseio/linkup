@@ -256,7 +256,7 @@ export default class Broker {
       return Promise.resolve(this.peerId);
     }
     else {
-      new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         this.once('register', resolve);
       });
     }

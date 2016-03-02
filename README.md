@@ -32,7 +32,8 @@ $ npm install linkup
 
 ## Use
 
-### Browser
+Here a simple example on how to use the library in the browser.
+More examples are available in the [examples folder](./examples).
 
 ```html
 <!DOCTYPE html>
@@ -56,17 +57,14 @@ $ npm install linkup
     });
 
     // send a message to a peer
-    peer.send('peer2', 'hi peer2!');
+    peer.send('peer2', 'hi peer2!')
+        .catch(function (err) {
+          console.error(err);
+        });
   </script>
 </head>
 </html>
 ```
-
-
-### Node.js
-
-... node.js support coming soon...
-
 
 ## Inspiration
 

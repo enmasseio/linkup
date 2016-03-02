@@ -87,13 +87,59 @@
     var message = document.querySelector('#message');
     var messages = document.querySelector('#messages');
 
-    function argumentsToArray (args) {
-      var array = [];
-      for (var i = 0; i < args.length; i++) {
-        array.push(args[i]);
+    /**
+     * Register our peer with an id at the broker
+     * @param event
+     */
+    register.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      // close previous peer (if any)
+      if (peer) {
+        peer.close();
       }
-      return array;
-    }
+
+      var peerId = from.value;
+      var brokerUrl = location.origin.replace(/^http/, 'ws');
+      peer = linkup.createPeer(peerId, brokerUrl);
+
+      peer.on('register', function () {
+        DOMConsole.info('Registered as', peerId);
+      });
+      peer.on('error', function (err) {
+        console.error(err);
+        DOMConsole.error(err);
+      });
+      peer.on('message', function (envelope) {
+        DOMConsole.log('Received message from', envelope.from, ':', envelope.message);
+      });
+    });
+
+    /**
+     * Send a message to another peer
+     * @param event
+     */
+    send.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      if (peer) {
+        var text = message.value;
+        message.select();
+        DOMConsole.log('Sending message to', to.value, ':', text);
+
+        peer.send(to.value, text)
+            .then(function () {
+              DOMConsole.log('Message sent');
+            })
+            .catch(function (err) {
+              console.error(err);
+              DOMConsole.error(err);
+            });
+      }
+      else {
+        DOMConsole.error('Cannot send a message, register yourself first...');
+      }
+    });
 
     var DOMConsole = {
       log: function () {
@@ -123,61 +169,14 @@
       }
     };
 
-    window.addEventListener('load', function load() {
-      /**
-       * Register our peer with an id at the broker
-       * @param event
-       */
-      register.addEventListener('submit', function (event) {
-        event.preventDefault();
+    function argumentsToArray (args) {
+      var array = [];
+      for (var i = 0; i < args.length; i++) {
+        array.push(args[i]);
+      }
+      return array;
+    }
 
-        // close previous peer (if any)
-        if (peer) {
-          peer.close();
-        }
-
-        var peerId = from.value;
-        var brokerUrl = location.origin.replace(/^http/, 'ws');
-        peer = linkup.createPeer(peerId, brokerUrl);
-
-        peer.on('register', function () {
-          DOMConsole.info('Registered as', peerId);
-        });
-        peer.on('error', function (err) {
-          console.error(err);
-          DOMConsole.error(err);
-        });
-        peer.on('message', function (envelope) {
-          DOMConsole.log('Received message from', envelope.from, ':', envelope.message);
-        });
-      });
-
-      /**
-       * Send a message to another peer
-       * @param event
-       */
-      send.addEventListener('submit', function (event) {
-        event.preventDefault();
-
-        if (peer) {
-          var text = message.value;
-          message.select();
-          DOMConsole.log('Sending message to', to.value, ':', text);
-
-          peer.send(to.value, text)
-              .then(function () {
-                DOMConsole.log('Message sent');
-              })
-              .catch(function (err) {
-                console.error(err);
-                DOMConsole.error(err);
-              });
-        }
-        else {
-          DOMConsole.error('Cannot send a message, register yourself first...');
-        }
-      });
-    });
   </script>
 
 </body>
