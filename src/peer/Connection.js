@@ -14,10 +14,7 @@ export class Connection {
     // pipe events from the peer
     this.peer.on('close', () => this.emit('close'));
     this.peer.on('error', (err) => this.emit('error', err));
-    this.peer.on('data',  (message) => this.emit('message', {
-      from: this.id,
-      message: JSON.parse(message)
-    }));
+    this.peer.on('data',  (message) => this.emit('message', JSON.parse(message)));
 
     // turn into an event emitter
     Emitter(this);

@@ -85,7 +85,10 @@ export default class Peer {
 
     connection.on('message', (message) => {
       debug('received message from', peerId, ':', message);
-      this.emit('message', message);
+      this.emit('message', {
+        from: peerId,
+        message
+      });
     });
     connection.on('error', (err) => this.emit('error', err));
     connection.on('close', () => {

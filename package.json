@@ -1,18 +1,15 @@
 {
   "name": "linkup",
   "version": "0.0.2",
-  "description": "Set up WebRTC connections between peers using simple id's",
+  "description": "Set up WebRTC connections between peers using nothing but an id",
   "main": "dist/linkup.js",
   "scripts": {
     "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
     "test": "mocha --compilers js:babel-register",
-    "build": "npm run build-peer; npm run build-broker; npm run copy-demo; npm run replace-demo",
+    "build": "npm run build-peer; npm run build-broker; npm run copy-demo",
     "build-peer": "rollup --config rollup-peer.config.js",
     "build-broker": "rollup --config rollup-broker.config.js",
-    "copy-demo": "cp demo/browser_peer.html dist/index.html; ",
-    "replace-demo": "replace '<script src=\"https://linkup-broker.herokuapp.com/linkup.js\"></script>' '<script src=\"linkup.js\"></script>' dist/index.html",
-    "watch": "watch 'npm run build' ./src",
-    "dev-server": "DEBUG=linkup:* babel-node src/broker/server.js",
+    "copy-demo": "cp src/peer/index.html dist/index.html; ",
     "deploy": "git push heroku master"
   },
   "repository": {
@@ -42,16 +39,12 @@
     "ws": "1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "6.6.0",
     "babel-preset-es2015-rollup": "1.1.1",
-    "babel-register": "6.6.0",
     "mocha": "2.4.5",
-    "replace": "0.3.0",
     "rollup": "0.25.4",
     "rollup-plugin-babel": "2.4.0",
     "rollup-plugin-commonjs": "2.2.1",
     "rollup-plugin-node-resolve": "1.4.0",
-    "rollup-plugin-uglify": "0.2.0",
-    "watch": "0.17.1"
+    "rollup-plugin-uglify": "0.2.0"
   }
 }

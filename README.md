@@ -1,6 +1,6 @@
 # linkup
 
-Set up WebRTC connections between peers using simple id's.
+Set up WebRTC connections between peers using nothing but an id.
 
 Features:
 
@@ -18,9 +18,12 @@ Roadmap:
 - Support browsers, mobile browsers, node.js, Android, iOS.
 - Support for letting peers authenticate each other for example with
   a Google or Facebook id.
+- When setting up a WebRTC connection fails, fall back to a TURN server?
 
 
 ## Install
+
+Install the library via npm:
 
 ```bash
 $ npm install linkup
@@ -74,23 +77,25 @@ $ npm install linkup
 
 ## Develop
 
-To run the broker server in development mode and with debugging:
+First install the dependencies once:
 
 ```
-npm run dev-server
+npm install
 ```
 
-To watch the code for changes and built the client side lib, open a second terminal and run:
+To run the broker server in development mode with debugging:
 
 ```
-npm run watch
+npm start
 ```
 
-Then open the following file in your browser:
+Then open the following url in your browser:
 
 ```
-/demo/index.html
+http://localhost:5000
 ```
+
+Note that the server must be restarted by hand on changes in the code.
 
 
 ## Build
