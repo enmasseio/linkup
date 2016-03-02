@@ -1,9 +1,10 @@
 # Changelog
 
-## not yet released, v0.0.3
+## 2016-03-02, v0.1.0
 
 - Huge rewrite.
 - Fixed signalling not working correctly with trickle.
+- More docs and examples
 
 
 ## 2016-03-01, v0.0.2
