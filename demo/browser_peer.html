@@ -107,6 +107,7 @@
         }
 
         var peerId = from.value;
+//        var brokerUrl = location.origin.replace(/^http/, 'ws');
         peer = linkup.createPeer(peerId);
 
         peer.on('register', function () {
@@ -130,7 +131,7 @@
 
         if (peer) {
           var text = message.value;
-          message.value = '';
+          message.select();
           DOMConsole.log('Sending message to', to.value, ':', text);
 
           peer.send(to.value, text)

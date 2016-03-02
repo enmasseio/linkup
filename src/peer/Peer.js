@@ -4,7 +4,6 @@ import Emitter from 'emitter-component';
 import debugFactory from 'debug/browser';
 
 import { requestify } from '../shared/requestify';
-import { initiateConnection, acceptConnection } from './Connection';
 import Broker from './Broker';
 
 let debug = debugFactory('linkup:peer');
@@ -27,7 +26,7 @@ export default class Peer {
     this.id = id;
 
     /**
-     * @type {Object.<string, {peer: SimplePeer, ready: Promise}>}
+     * @type {Object.<string, Connection>}
      */
     this.connections = {}; // connections to peers
 
@@ -36,8 +35,9 @@ export default class Peer {
      * @type {Broker}
      */
     this.broker = new Broker(brokerUrl);
-    this.broker.on('connection', (connection) => this._acceptConnection(connection));
+    this.broker.on('connection', (connection) => this._handleConnection(connection));
     this.broker.on('open', () => this._register());
+    this.broker.on('error', (err) => this.emit('error', err));
   }
 
   /**
@@ -45,10 +45,7 @@ export default class Peer {
    * @private
    */
   _register () {
-    this.broker.ready
-        .then(() => {
-          return this.broker.connection.request({type: 'register', id: this.id})
-        })
+    this.broker.register(this.id)
         .then((id) => {
           debug(`Registered at broker with id ${JSON.stringify(id)}`);
           this.emit('register');
@@ -60,43 +57,39 @@ export default class Peer {
    * Connect to a peer.
    * When already connected with this peer, the existing connection is returned
    * @param {string} peerId
-   * @return {Promise.<null, Error>} resolves when connected
+   * @return {Promise.<Connection, Error>} Resolves with a connection
    */
   connect (peerId) {
     let connection = this.connections[peerId];
-    if (!connection) {
-      connection = this.broker.initiateConnection(this.id, peerId);
-
-      connection.on('message', (message) => this.emit('message', message));
-      connection.on('error', (err) => this.emit('error', err));
-      connection.on('close', () => {
-        debug('disconnected from peer ', peerId);
-        delete this.connections[peerId];
-      });
-
-      this.connections[peerId] = connection;
+    if (connection) {
+      return Promise.resolve(connection);
     }
-
-    return connection.ready;
+    else {
+      return this.broker.initiateConnection(peerId)
+          .then((connection) => {
+            this.connections[peerId] = connection;
+            return connection;
+          })
+    }
   }
 
   /**
-   * Accept an incoming connection
+   * Handle a new connection
    * @param {{id: string, peer: SimplePeer, ready: Promise}} connection
    * @private
    */
-  _acceptConnection (connection) {
+  _handleConnection (connection) {
     // add the new connection to the map with open connections
     let peerId = connection.id;
     this.connections[peerId] = connection;
 
     connection.on('message', (message) => {
       debug('received message from', peerId, ':', message);
-      this.emit('message', JSON.parse(message));
+      this.emit('message', message);
     });
     connection.on('error', (err) => this.emit('error', err));
     connection.on('close', () => {
-      debug('closed connection with ', peerId);
+      debug('disconnected from peer ', peerId);
       delete this.connections[peerId];
     });
   }
@@ -109,17 +102,15 @@ export default class Peer {
   disconnect (peerId) {
     debug('disconnect from peer ', peerId);
 
-    return new Promise((resolve, reject) => {
-      let connection = this.connections[peerId];
-      if (connection) {
-        delete this.connections[peerId];
+    let connection = this.connections[peerId];
+    if (connection) {
+      delete this.connections[peerId];
 
-        return connection.close();
-      }
-      else {
-        return Promise.resolve();
-      }
-    });
+      return connection.close();
+    }
+    else {
+      return Promise.resolve();
+    }
   }
 
   /**
@@ -131,10 +122,9 @@ export default class Peer {
    */
   send (peerId, message) {
     debug('sending message to', peerId, ':', message);
-    return this.broker.ready
-        .then(() => this.connect(peerId))
-        .then(() => this.connections[peerId].peer.send(JSON.stringify(message)))
-        .then(() => debug('message sent'))
+    return this.connect(peerId)
+        .then((connection) => connection.send(message))
+        .then(() => debug('message sent'));
   }
 
   /**
@@ -145,9 +135,10 @@ export default class Peer {
     this.broker.close();
     this.broker = null;
 
-    let promises = Object.keys(this.connections).map(peerId => this.disconnect(peerId));
+    let closeConnections = Object.keys(this.connections)
+        .map(peerId => this.disconnect(peerId));
 
-    return Promise.all(promises);
+    return Promise.all(closeConnections);
   }
 
 }

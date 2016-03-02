@@ -88,19 +88,32 @@ function createServer (port) {
     /**
      * Unregister this peer
      * @param {Object} connection
-     * @param {{type: 'register'}} message
+     * @param {{type: 'unregister'}} message
      */
     unregister: function (connection, message) {
       unregister(connection);
     },
 
     /**
-     * Forward an offer to connect to a peer, should respond with an answer
+     * Find a peer by it's id
      * @param {Object} connection
-     * @param {{type: 'connect', from: string, to: string, offer: string}} message
-     * @return {Promise.<{answer: string}, Error>}
+     * @param {{type: 'find', id: string}} message
+     * @return {{id: string} | null} Returns the peer when found,
+     *                               else returns null
      */
-    connect: function (connection, message) {
+    find: function (connection, message) {
+      return find(message.id)
+          ? {id: message.id}
+          : null;
+    },
+
+    /**
+     * Send a signal to an other peer
+     * @param {Object} connection
+     * @param {{type: 'signal', from: string, to: string, signal: string}} message
+     * @return {Promise.<undefined, Error>}
+     */
+    signal: function (connection, message) {
       if (message.from !== connection.linkupId) {
         throw new Error(
             `Invalid id. message.from (${JSON.stringify(message.from)}) does not match the id of the the connection (${JSON.stringify(connection.linkupId)})`)
@@ -113,7 +126,6 @@ function createServer (port) {
       return to.request(message);
     }
   };
-
 
   server.on('request', app);
   server.listen(port, function() {

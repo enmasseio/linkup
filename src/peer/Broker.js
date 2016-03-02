@@ -21,9 +21,14 @@ export default class Broker {
     // Turn the broker into an event emitter
     Emitter(this);
 
+    // map with all active peers
+    this.peerId = null; // our own id
+    this.peers = {};
+
     // open a WebSocket
     this.url = url;
     this.socket = new ReconnectingWebSocket(url);
+    this.pingTimer = null; // timer used to keep the WebSocket alive
 
     // requestify the WebSocket
     this.connection = requestify();
@@ -31,14 +36,41 @@ export default class Broker {
       debugSocket('send message', message);
       this.socket.send(message);
     };
+
     this.socket.onmessage = (event) => {
       debugSocket('receive message', event.data);
       this.connection.receive(event.data);
     };
 
+    this.socket.onopen = () => {
+      debug(`Connected to broker ${url}`);
+
+      // send a ping every 45 seconds to keep the socket alive
+      // Heroku will close a WebSocket after 55 seconds of inactivity
+      this.pingTimer = setInterval(() => {
+        debugSocket('Send ping to keep the WebSocket alive...');
+        this.connection.request({type: 'ping'})
+            .catch((err) => this.emit('error', err));
+      }, 45000);
+
+      this.emit('open');
+    };
+
+    this.socket.onclose = () => {
+      clearInterval(this.pingTimer);
+
+      this.emit('close');
+      debug('Disconnected from broker');
+    };
+
+    this.socket.onerror = (err) => {
+      debug('Error', err);
+      this.emit('error', err);
+    };
+
     // handle an incoming request
     this.functions = {
-      connect: (message) => this._acceptConnection(message)
+      signal: (message) => this._handleSignal(message)
     };
     this.connection.on('request', (message) => {
       let fn = this.functions[message.type];
@@ -47,60 +79,105 @@ export default class Broker {
       }
       return fn(message);
     });
-
-    // a promise which resolves when connected
-    this.ready = new Promise((resolve, reject) => {
-      let connecting = true;
-      this.socket.onopen = () => {
-        debug(`Connected to broker ${url}`);
-
-        // send a ping every 45 seconds to keep the socket alive
-        // Heroku will close a WebSocket after 55 seconds of inactivity
-        this.pingTimer = setInterval(() => {
-          debugSocket('Send ping to keep the WebSocket alive...');
-          this.connection.request({type: 'ping'});
-        }, 45000);
-
-        if (connecting) {
-          connecting = false;
-          resolve();
-        }
-
-        this.emit('open');
-      };
-
-      this.socket.onclose = () => {
-        clearInterval(this.pingTimer);
-
-        this.emit('close');
-        debug('Disconnected from broker');
-      };
-
-      this.socket.onerror = (err) => {
-        debug('Error', err);
-
-        if (connecting) {
-          connecting = false;
-          reject(err);
-        }
-        else {
-          this.emit('error', err);
-        }
-      };
-    });
   }
 
   /**
    * Connect to a peer
-   * @param {string} from
    * @param {string} to
-   * @return {Connection}
+   * @return {Promise.<Connection, Error>}
    */
-  initiateConnection (from, to) {
-    debug(`initiate connection from ${from} to ${to}`);
+  initiateConnection (to) {
+    debug(`initiate connection from ${this.peerId} to ${to}`);
 
+    return this._waitUntilRegistered()
+        // first check whether this peer exists
+        .then(() => {
+          return this.connection.request({type: 'find', id: to})
+        })
+        .then((peer) => {
+          if (!peer) {
+            throw new Error(`Peer not found (${to})`);
+          }
+        })
+        // if the peer exists, create a connection
+        .then(() => {
+          let peer = this.peers[to];
+          if (!peer) {
+            let initiator = true;
+            peer = this._createPeer(to, initiator);
+
+            // list the new peer
+            this.peers[to] = peer;
+            peer.on('close', () => delete this.peers[to]);
+
+            this.emit('connection', new Connection(to, peer));
+          }
+
+          return new Connection(to, peer);
+        });
+  }
+
+  /**
+   * Handle in incoming signal. Creates a new connection if it does not yet
+   * exists, then deliver the signal.
+   * @param message
+   * @private
+   */
+  _handleSignal (message) {
+    debug('handleSignal', message);
+
+    let id = message.from;
+    let peer = this.peers[id];
+    if (!peer) {
+      let initiator = false;
+      peer = this._createPeer(id, initiator);
+
+      // list the new peer
+      this.peers[id] = peer;
+      peer.on('close', () => delete this.peers[id]);
+
+      this.emit('connection', new Connection(id, peer));
+    }
+
+    // deliver the signal
+    peer.signal(message.signal);
+  }
+
+  /**
+   * Register a peer by id
+   * @param peerId
+   */
+  register (peerId) {
+    return this._waitUntilConnected()
+        .then(() => {
+          return this.connection.request({type: 'register', id: peerId})
+        })
+        .then((peerId) => {
+          this.peerId = peerId;
+          this.emit('register', peerId);
+          return peerId;
+        });
+  }
+
+  // TODO: implement unregister
+
+  /**
+   * Close the WebSocket connection to the signalling server.
+   */
+  close() {
+    this.socket.close();
+  }
+
+  /**
+   * Create a new SimplePeer
+   * @param {string} to
+   * @param {boolean} initiator
+   * @return {SimplePeer}
+   * @private
+   */
+  _createPeer (to, initiator) {
     let peer = new SimplePeer({
-      initiator: true,
+      initiator,
       trickle: TRICKLE,
       config: { // TODO: make customizable
         //iceServers: [ { url: 'stun:23.21.150.121' } ] // default of simple-peer
@@ -122,110 +199,63 @@ export default class Broker {
       }
     });
 
-    let ready = new Promise((resolve, reject) => {
-      let connecting = true;
+    peer.on('signal', (data) => {
+      debugWebRTC('signal', data);
 
-      peer.once('error', (err) => {
-        if (connecting) {
-          connecting = false;
-          reject(err);
-        }
-      });
-
-      peer.on('signal', (data) => {
-        debugWebRTC('signal', data);
-
-        if (data.type === 'offer') {
-          let message = { type: 'connect', from, to, offer: data };
-
-          this.connection.request(message)
-              .then(function (answer) {
-                debugWebRTC('answer', answer);
-                peer.signal(answer);
-              })
-              .catch(function (err) {
-                if (connecting) {
-                  connecting = false;
-                  reject(err);
-                }
-              });
-        }
-      });
-
-      peer.once('connect', () => {
-        debug(`connected with ${to}`);
-
-        if (connecting) {
-          connecting = false;
-          resolve();
-        }
-      });
+      this._waitUntilRegistered()
+          .then((from) => {
+            return this.connection.request({ type: 'signal', from, to, signal: data })
+          })
+          .catch((err) => {
+            console.log('error catching...', err)
+            this.emit('error', err)
+          });
     });
 
-    return new Connection(to, peer, ready);
+    return peer;
   }
 
   /**
-   * Accept a connection to an other peer
-   * @param {Object} message
-   * @return {Promise.<Object, Error>} Resolves with a WebRTC answer
+   * Waits until the broker is ready: there is a socket connection with
+   * the broker server.
+   * @return {Promise.<undefined, Error>}
    * @private
    */
-  _acceptConnection (message) {
-    debug('acceptConnection', message);
+  _waitUntilConnected () {
+    switch (this.socket.readyState) {
+      case ReconnectingWebSocket.OPEN:
+        return Promise.resolve();
 
-    return new Promise((resolve, reject) => {
-      let connecting = true;
-      let peer = new SimplePeer({
-        initiator: false,
-        trickle: TRICKLE
-      });
-
-      let ready = new Promise((resolveReady, rejectReady) => {
-        let done = false;
-        peer.once('connect', () => {
-          debug('connected to', message.from);
-          done = true;
-          resolveReady(peer);
+      case ReconnectingWebSocket.CONNECTING:
+        return new Promise ((resolve, reject) => {
+          this.once('open', resolve);
         });
 
-        peer.once('error', (err) => {
-          if (!done) {
-            rejectReady(err)
-          }
-        });
-      });
+      case ReconnectingWebSocket.CLOSING:
+        return Promise.reject(new Error('WebSocket is closed'));
 
-      peer.on('signal', function (data) {
-        debugWebRTC('signal', data);
+      case ReconnectingWebSocket.CLOSED:
+        return Promise.reject(new Error('WebSocket is closing'));
 
-        // receive the answer
-        if (data.type === 'answer') {
-          if (connecting) {
-            connecting = false;
-            resolve(data);
-          }
-        }
-      });
-
-      peer.once('error', reject);
-
-      peer.on('error', function (err) {
-        debugWebRTC('Error', err);
-        if (connecting) {
-          connecting = false;
-          reject(err);
-        }
-      });
-
-      // send the offer
-      peer.signal(message.offer);
-
-      this.emit('connection', new Connection(message.from, peer, ready));
-    });
+      default:
+        return Promise.reject(new Error('WebSocket has an unknown readyState'));
+    }
   }
 
-  close() {
-    this.socket.close();
+  /**
+   * Wait until the peer has registered it's id at the broker
+   * @return {Promise.<string, Error>} Resolves with the registered id
+   * @private
+   */
+  _waitUntilRegistered () {
+    if (this.peerId) {
+      return Promise.resolve(this.peerId);
+    }
+    else {
+      new Promise((resolve, reject) => {
+        this.once('register', resolve);
+      });
+    }
   }
+
 }

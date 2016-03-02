@@ -1,7 +1,7 @@
 {
   "name": "linkup",
   "version": "0.0.2",
-  "description": "Link up peers by id using a WebRTC connection",
+  "description": "Set up WebRTC connections between peers using simple id's",
   "main": "dist/linkup.js",
   "scripts": {
     "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
@@ -23,7 +23,9 @@
     "webrtc",
     "connect",
     "peer",
-    "p2p"
+    "p2p",
+    "broker",
+    "signalling"
   ],
   "author": "Jos de Jong",
   "license": "MIT",

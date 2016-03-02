@@ -1,6 +1,6 @@
 # linkup
 
-Link up peers by id using a WebRTC connection
+Set up WebRTC connections between peers using simple id's.
 
 Features:
 
