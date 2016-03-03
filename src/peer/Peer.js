@@ -1,12 +1,12 @@
 "use strict";
 
 import Emitter from 'emitter-component';
-import debugFactory from 'debug/browser';
 
+import { universalDebug } from './universal/universalDebug';
 import { requestify } from '../shared/requestify';
 import Broker from './Broker';
 
-let debug = debugFactory('linkup:peer');
+let debug = universalDebug('linkup:peer');
 
 export default class Peer {
   /**

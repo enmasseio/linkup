@@ -20,7 +20,8 @@ rollup({
     format: 'cjs',
     sourceMap: true
   });
-});
+}).catch(err => console.error(err));
+
 
 // transpile and bundle the client library
 rollup({
@@ -31,15 +32,8 @@ rollup({
       main: true
     }),
 
-    // non-CommonJS modules will be ignored, but you can also
-    // specifically include/exclude files
     commonjs({
-      include: 'node_modules/**',
-      //exclude: [ 'node_modules/foo/**', 'node_modules/bar/**' ],
-
-      // search for files other than .js files (must already
-      // be transpiled by a previous plugin!)
-      //extensions: [ '.js', '.coffee' ] // defaults to [ '.js' ]
+      include: 'node_modules/**'
     }),
 
     babel({
@@ -55,4 +49,4 @@ rollup({
     moduleName: 'linkup',
     sourceMap: true
   });
-});
+}).catch(err => console.error(err));

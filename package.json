@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build; DEBUG=linkup:* node dist/broker/server.js",
     "test": "mocha --compilers js:babel-register",
-    "build": "babel-node build.js; npm run copy-demo",
+    "build": "babel build.js | node; npm run copy-demo",
     "copy-demo": "cp src/peer/index.html dist/index.html; ",
     "deploy": "git push heroku master"
   },
@@ -30,15 +30,16 @@
   "homepage": "https://github.com/enmasseio/linkup#readme",
   "dependencies": {
     "debug": "2.2.0",
-    "detect-node": "^2.0.3",
+    "detect-node": "2.0.3",
     "emitter-component": "1.1.1",
     "express": "4.13.4",
     "reconnectingwebsocket": "1.0.0",
     "simple-peer": "6.0.2",
+    "wrtc": "0.0.59",
     "ws": "1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.6.4",
+    "babel-cli": "6.6.4",
     "babel-preset-es2015-rollup": "1.1.1",
     "mocha": "2.4.5",
     "rollup": "0.25.4",

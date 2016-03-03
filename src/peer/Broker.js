@@ -1,14 +1,16 @@
 import Emitter from 'emitter-component';
-import ReconnectingWebSocket from 'reconnectingwebsocket';
-import SimplePeer from 'simple-peer/simplepeer.min';
-import debugFactory from 'debug/browser';
+
+import ReconnectingWebSocket from 'ReconnectingWebSocket';
+import { universalDebug } from './universal/universalDebug';
+import { UniversalWebSocket } from './universal/UniversalWebSocket';
+import { UniversalSimplePeer }  from './universal/UniversalSimplePeer';
 
 import { requestify } from '../shared/requestify';
 import { Connection } from './Connection';
 
-let debug = debugFactory('linkup:broker');
-let debugSocket = debugFactory('linkup:socket');
-let debugWebRTC = debugFactory('linkup:webrtc');
+let debug = universalDebug('linkup:broker');
+let debugSocket = universalDebug('linkup:socket');
+let debugWebRTC = universalDebug('linkup:webrtc');
 
 const TRICKLE = true;
 
@@ -27,7 +29,9 @@ export default class Broker {
 
     // open a WebSocket
     this.url = url;
-    this.socket = new ReconnectingWebSocket(url);
+    this.socket = new ReconnectingWebSocket(url, null, {
+      WebSocket: UniversalWebSocket
+    });
     this.pingTimer = null; // timer used to keep the WebSocket alive
 
     // requestify the WebSocket
@@ -180,7 +184,7 @@ export default class Broker {
    * @private
    */
   _createPeer (to, initiator) {
-    let peer = new SimplePeer({
+    let peer = new UniversalSimplePeer({
       initiator,
       trickle: TRICKLE,
       config: { // TODO: make customizable

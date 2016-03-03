@@ -1,5 +1,10 @@
 # Changelog
 
+## not yet released, v0.2.0
+
+- Implemented support for node.js
+
+
 ## 2016-03-02, v0.1.0
 
 - Huge rewrite.
