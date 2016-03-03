@@ -1,14 +1,30 @@
+import { rollup } from 'rollup';
 import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
-export default {
+// transpile and bundle the server script
+rollup({
+  entry: 'src/broker/server.js',
+  plugins: [
+    babel({
+      babelrc: false,
+      presets: ['es2015-rollup']
+    }),
+    //uglify()
+  ]
+}).then(bundle => {
+  bundle.write({
+    dest: 'dist/broker/server.js',
+    format: 'cjs',
+    sourceMap: true
+  });
+});
+
+// transpile and bundle the client library
+rollup({
   entry: 'src/peer/linkup.js',
-  dest: 'dist/linkup.js',
-  format: 'umd',
-  moduleName: 'linkup',
-  sourceMap: true,
   plugins: [
     nodeResolve({
       jsnext: true,
@@ -32,4 +48,11 @@ export default {
     }),
     //uglify()
   ]
-};
+}).then(bundle => {
+  bundle.write({
+    dest: 'dist/linkup.js',
+    format: 'umd',
+    moduleName: 'linkup',
+    sourceMap: true
+  });
+});
