@@ -1,6 +1,6 @@
 import Emitter from 'emitter-component';
 
-import ReconnectingWebSocket from 'ReconnectingWebSocket';
+import ReconnectingWebSocket from './ReconnectingWebSocket';
 import { universalDebug } from './universal/universalDebug';
 import { UniversalWebSocket } from './universal/UniversalWebSocket';
 import { UniversalSimplePeer }  from './universal/UniversalSimplePeer';
