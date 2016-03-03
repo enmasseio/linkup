@@ -35,7 +35,6 @@
     "express": "4.13.4",
     "reconnectingwebsocket": "1.0.0",
     "simple-peer": "6.0.2",
-    "wrtc": "0.0.59",
     "ws": "1.0.1"
   },
   "devDependencies": {
