@@ -1,8 +1,9 @@
 # Changelog
 
-## not yet released, v0.2.0
+## 2016-03-04, v0.2.0
 
-- Implemented support for node.js
+- Implemented support for node.js.
+- Some bug fixes.
 
 
 ## 2016-03-02, v0.1.0
