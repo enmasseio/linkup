@@ -32,6 +32,8 @@ $ npm install linkup
 
 ## Use
 
+### Browser
+
 Here a simple example on how to use the library in the browser.
 More examples are available in the [examples folder](./examples).
 
@@ -66,6 +68,40 @@ More examples are available in the [examples folder](./examples).
 </html>
 ```
 
+### node.js
+
+Before the library can be used in node.js the `wrtc` library has to be installed:
+
+```bash
+$ npm install wrtc
+```
+
+Then, `linkup` can be loaded like:
+
+```js
+var linkup = require('linkup');
+
+// create a peer with some id
+var peer = linkup.createPeer('peer1');
+
+// listen for messages from other peers
+peer.on('message', function (envelope) {
+  console.log('Received message from', envelope.from, ':', envelope.message);
+});
+
+// we want to know when something goes wrong
+peer.on('error', function (err) {
+  console.error(err);
+});
+
+// send a message to a peer
+peer.send('peer2', 'hi peer2!')
+    .catch(function (err) {
+      console.error(err);
+    });
+```
+
+
 ## Inspiration
 
 - https://github.com/js-platform/p2p
@@ -77,21 +113,19 @@ More examples are available in the [examples folder](./examples).
 
 First install the dependencies once:
 
-```
-npm install
+```bash
+$ npm install
 ```
 
 To run the broker server in development mode with debugging:
 
-```
-npm start
+```bash
+$ npm start
 ```
 
 Then open the following url in your browser:
 
-```
 http://localhost:5000
-```
 
 Note that the server must be restarted by hand on changes in the code.
 
@@ -100,15 +134,15 @@ Note that the server must be restarted by hand on changes in the code.
 
 The build script generates a bundled file for both peer libraries and for running the broker server.
 
-```
-npm install
-npm run build
+```bash
+$ npm install
+$ npm run build
 ```
 
 To run the generated the generated code for the broker server:
 
-```
-node dist/broker/server
+```bash
+$ node dist/broker/server
 ```
 
 ### Deploy
@@ -127,8 +161,8 @@ $ heroku config:set NPM_CONFIG_PRODUCTION=false
 
 To deploy:
 
-```
-npm run deploy
+```bash
+$ npm run deploy
 ```
 
 
