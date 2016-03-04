@@ -248,7 +248,11 @@
           //e.reason = event.reason;
           //e.wasClean = event.wasClean;
           //eventTarget.dispatchEvent(e);
-          self.onconnecting({ code, reason, wasClean });
+          self.onconnecting({
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          });
           if (!reconnectAttempt && !timedOut) {
             if (self.debug || ReconnectingWebSocket.debugAll) {
               console.debug('ReconnectingWebSocket', 'onclose', self.url);
@@ -278,9 +282,11 @@
           console.debug('ReconnectingWebSocket', 'onerror', self.url, event);
         }
         //eventTarget.dispatchEvent(generateEvent('error'));
-        self.onerror(event);
+        var error = new Error('WebSocket error');
+        error.event = event;
+        self.onerror(error);
       };
-    }
+    };
 
     // Whether or not to create a websocket upon instantiation
     if (this.automaticOpen == true) {

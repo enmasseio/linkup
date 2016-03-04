@@ -1,3 +1,8 @@
+// Start both peer1.js and peer2.js in a terminal like:
+//
+//    node examples/nodejs/peer1.js
+//    node examples/nodejs/peer2.js
+
 var linkup = require('../../dist/linkup');
 
 // create peer2

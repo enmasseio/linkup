@@ -52,7 +52,7 @@ export default class Broker {
       // send a ping every 45 seconds to keep the socket alive
       // Heroku will close a WebSocket after 55 seconds of inactivity
       this.pingTimer = setInterval(() => {
-        debugSocket('Send ping to keep the WebSocket alive...');
+        debug('Send ping to keep the WebSocket alive...');
         this.connection.request({type: 'ping'})
             .catch((err) => this.emit('error', err));
       }, 45000);
