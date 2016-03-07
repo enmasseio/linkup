@@ -178,6 +178,18 @@
       return array;
     }
 
+    // show a warning when the opened page is not https
+    if (/^https/.test(location.href) === false) {
+      var secureUrl = location.href.replace(/^http/, 'https');
+      var div = document.createElement('div');
+      div.innerHTML = 'Please open this demo at ' +
+          '<a href="' + secureUrl+ '">it\'s https url</a>, ' +
+          'not all browsers allow secure WebSockets on non-secure pages';
+      div.style.color = 'red';
+      div.querySelector('a').style.color = 'red';
+      document.body.insertBefore(div, document.body.firstChild);
+    }
+
   </script>
 
 </body>
