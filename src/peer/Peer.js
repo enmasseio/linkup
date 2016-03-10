@@ -95,6 +95,8 @@ export default class Peer {
       debug('disconnected from peer ', peerId);
       delete this.connections[peerId];
     });
+
+    this.emit('connection', connection);
   }
 
   /**

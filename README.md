@@ -169,6 +169,10 @@ WebRTC connections to peers.
 
 #### Events
 
+##### Peer.on('connection', function (connection) { })
+
+Emitted when a new connection is created by a remote peer. The connection (type `Connection`) is passed as argument to the callback function.
+
 ##### Peer.on('error', function (error) { })
 
 Emitted when an error occurs. The callback function is invoked with the error as argument.
@@ -186,6 +190,11 @@ Peer.on('message', function (envelope) {
 ##### Peer.on('register', function (id) { })
 
 Emitted when the peer has registered it's id at the broker server. The callback function is invoked with the registered id as argument.
+
+#### Properties
+
+- `{string} Peer.id` The id of the peer
+
 
 ### Connection
 
@@ -206,18 +215,25 @@ Close the connection.
 
 #### Events
 
-##### Peer.on('close', function () { })
+##### Connection.on('connect', function () { })
+
+Emitted when connected.
+
+##### Connection.on('close', function () { })
 
 Emitted when the connection has been closed (normally by the remote peer).
 
-##### Peer.on('error', function (error) { })
+##### Connection.on('error', function (error) { })
 
 Emitted when an error occurs. The callback function is invoked with the error as argument.
 
-##### Peer.on('message', function (message) { })
+##### Connection.on('message', function (message) { })
 
 Emitted when a message is received. The callback function is invoked with the received message as argument.
 
+#### Properties
+
+- `{string} Connection.id` The id of the remote peer.
 
 
 ## Inspiration

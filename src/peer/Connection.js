@@ -12,6 +12,7 @@ export class Connection {
     this.peer = peer; // SimplePeer object
 
     // pipe events from the peer
+    this.peer.on('connect', () => this.emit('connect'));
     this.peer.on('close', () => this.emit('close'));
     this.peer.on('error', (err) => this.emit('error', err));
     this.peer.on('data',  (message) => this.emit('message', JSON.parse(message)));
