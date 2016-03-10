@@ -1,8 +1,9 @@
 # Changelog
 
-## not yet released, v0.3.0
+## 2016-03-10, v0.3.0
 
 - Allow passing SimplePeer configuration.
+- Added a TURN server to the default configured iceServers.
 - API Docs
 
 
