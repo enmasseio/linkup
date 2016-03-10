@@ -33,6 +33,7 @@
     "detect-node": "2.0.3",
     "emitter-component": "1.1.1",
     "express": "4.13.4",
+    "extend": "3.0.0",
     "reconnectingwebsocket": "1.0.0",
     "simple-peer": "6.0.2",
     "ws": "1.0.1"

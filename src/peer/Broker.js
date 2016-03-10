@@ -1,4 +1,5 @@
 import Emitter from 'emitter-component';
+import extend from 'extend';
 
 import ReconnectingWebSocket from './ReconnectingWebSocket';
 import { universalDebug } from './universal/universalDebug';
@@ -12,16 +13,20 @@ let debug = universalDebug('linkup:broker');
 let debugSocket = universalDebug('linkup:socket');
 let debugWebRTC = universalDebug('linkup:webrtc');
 
-const TRICKLE = true;
-
 export default class Broker {
   /**
    * Create a new Broker
    * @param {string} url
+   * @param {Object} [options]  Optional object with options for a SimplePeer
+   *                            connection. The available options are described
+   *                            in the SimplePeer docs:
+   *                            https://github.com/feross/simple-peer#api
    */
-  constructor (url) {  // TODO: allow passing webrtc options like trickle
+  constructor (url, options) {
     // Turn the broker into an event emitter
     Emitter(this);
+
+    this.options = options || {};
 
     // map with all active peers
     this.peerId = null; // our own id
@@ -184,28 +189,8 @@ export default class Broker {
    * @private
    */
   _createPeer (to, initiator) {
-    let peer = new UniversalSimplePeer({
-      initiator,
-      trickle: TRICKLE,
-      config: { // TODO: make customizable
-        //iceServers: [ { url: 'stun:23.21.150.121' } ] // default of simple-peer
-        iceServers: [
-          // https://gist.github.com/yetithefoot/7592580
-          //{
-          //  urls: ['stun:stun.services.mozilla.com']
-          //},
-          {
-            urls: [
-              'stun:stun.l.google.com:19302',
-              'stun:stun1.l.google.com:19302',
-              'stun:stun2.l.google.com:19302',
-              'stun:stun3.l.google.com:19302',
-              'stun:stun4.l.google.com:19302'
-            ]
-          }
-        ]
-      }
-    });
+    let options = extend({}, this.options, {initiator});
+    let peer = new UniversalSimplePeer(options);
 
     peer.on('signal', (data) => {
       debugWebRTC('signal', data);

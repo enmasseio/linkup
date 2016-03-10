@@ -101,8 +101,9 @@
       }
 
       var peerId = from.value;
-      var brokerUrl = location.origin.replace(/^http/, 'ws');
-      peer = linkup.createPeer(peerId, brokerUrl);
+      peer = linkup.createPeer(peerId, {
+        brokerUrl: location.origin.replace(/^http/, 'ws')
+      });
 
       peer.on('register', function () {
         DOMConsole.info('Registered as', peerId);

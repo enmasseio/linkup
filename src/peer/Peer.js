@@ -12,9 +12,9 @@ export default class Peer {
   /**
    * Create a Peer.
    * @param {string} id
-   * @param {string} brokerUrl
+   * @param {{brokerUrl: string} | {brokerUrl: string, simplePeer: Object}} options
    */
-  constructor(id, brokerUrl) {
+  constructor(id, options) {
     this.isPeer = true; // type information
 
     // turn this Peer into an event emitter
@@ -34,7 +34,7 @@ export default class Peer {
      * create a broker
      * @type {Broker}
      */
-    this.broker = new Broker(brokerUrl);
+    this.broker = new Broker(options.brokerUrl, options.simplePeer);
     this.broker.on('connection', (connection) => this._handleConnection(connection));
     this.broker.on('open', () => this._register());
     this.broker.on('error', (err) => this.emit('error', err));
@@ -48,7 +48,7 @@ export default class Peer {
     this.broker.register(this.id)
         .then((id) => {
           debug(`Registered at broker with id ${JSON.stringify(id)}`);
-          this.emit('register');
+          this.emit('register', id);
         })
         .catch((err) => this.emit('error', err));
   }
@@ -100,7 +100,7 @@ export default class Peer {
   /**
    * Disconnect from a peer
    * @param {string} peerId
-   * @return {Promise.<null, Error>} resolves when disconnected
+   * @return {Promise.<undefined, Error>} resolves when disconnected
    */
   disconnect (peerId) {
     debug('disconnect from peer ', peerId);
