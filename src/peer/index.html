@@ -107,12 +107,25 @@
           trickle: true,
           config: {
             iceServers: [
+//              {
+//                urls: [
+//                  'turn:74.125.22.127:19305',
+//                  'turn:74.125.134.127:19305',
+//                  'stun:stun.l.google.com:19302'
+//                ]
+//              },
               {
-                urls: [
-                  'turn:74.125.22.127:19305',
-                  'turn:74.125.134.127:19305',
-                  'stun:stun.l.google.com:19302'
-                ]
+                url: "stun:turn1.xirsys.com"
+              },
+              {
+                credential: "acfd763c-7ff4-4e00-a879-6d2af7ce9649",
+                url: "turn:turn1.xirsys.com:443?transport=udp",
+                username: "c06830f5-dbf8-40d2-9af6-568e3d08abc5"
+              },
+              {
+                credential: "acfd763c-7ff4-4e00-a879-6d2af7ce9649",
+                url: "turn:turn1.xirsys.com:443?transport=tcp",
+                username: "c06830f5-dbf8-40d2-9af6-568e3d08abc5"
               }
             ]
           }
