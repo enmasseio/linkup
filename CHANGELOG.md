@@ -1,5 +1,11 @@
 # Changelog
 
+## not yet released, v0.3.0
+
+- Allow passing SimplePeer configuration.
+- API Docs
+
+
 ## 2016-03-04, v0.2.0
 
 - Implemented support for node.js.

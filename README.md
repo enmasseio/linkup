@@ -12,10 +12,11 @@ Features:
   peer, and it's up to the peer to accept or deny connections. This is unlike
   most messaging platforms where you get an application key and peers can only
   talk to other peers within the same application (closed system).
+- Works in browsers and node.js.
 
 Roadmap:
 
-- Support browsers, mobile browsers, node.js, Android, iOS.
+- Support for Android and iOS.
 - Support for letting peers authenticate each other for example with
   a Google or Facebook id.
 - When setting up a WebRTC connection fails, fall back to a TURN server?
@@ -100,6 +101,123 @@ peer.send('peer2', 'hi peer2!')
       console.error(err);
     });
 ```
+
+## API
+
+### linkup
+
+#### Functions
+
+##### linkup.createPeer(id [, options])
+
+Create a new peer
+
+- `@param {string} id`  The id for the peer. Other peers will be able to connect
+  to this peer using this id.
+- `@param {Object} [options]` Optional options. The options are structured like:
+
+  ```js
+  var options = {
+    browserUrl: 'wss://linkup-broker.herokuapp.com',
+    simplePeer: {
+      // SimplePeer options, for example `trickle: true`
+    }
+  }
+  ```
+
+  The options for SimplePeer (creating WebRTC connections) are described here:
+  https://github.com/feross/simple-peer#api
+
+- `@return Peer` Returns a peer instance
+
+### Peer
+
+A peer is constructed via the function `linkup.createPeer(id [, options])`.
+
+#### Methods
+
+##### Peer.connect(peerId)
+
+Open a WebRTC connection to a peer.
+
+- `@param {string} peerId`
+- `@return {Promise.<Connection, Error>}` Resolves with a connection. When already connected with this peer, the existing connection is returned
+
+##### Peer.disconnect(peerId)
+
+Disconnect from a peer
+
+- `@param {string} peerId`
+- `@return {Promise.<undefined, Error>}` resolves when disconnected
+
+##### Peer.send(peerId, message)
+
+Send a message to a peer.
+Will automatically establish a WebRTC connection if not yet connected.
+
+- `@param {string} peerId`
+- `@param {*} message`
+- `@return {Promise<undefined, Error>}`
+
+##### Peer.close()
+
+Close a peer. Closes the connection to the broker server, and closes all open
+WebRTC connections to peers.
+
+- `@return Promise<undefined, Error>` Returns a promise which resolves when the message has been
+  delivered.
+
+#### Events
+
+##### Peer.on('error', function (error) { })
+
+Emitted when an error occurs. The callback function is invoked with the error as argument.
+
+##### Peer.on('message', function (envelope) { })
+
+Emitted when a message is received. The passed `envelope` is an object containing the id of the sender as property `from`, and a property `message` containing the actual message:
+
+```
+Peer.on('message', function (envelope) {
+  console.log('Received message from peer', envelope.from, ':', envelope.message);
+});
+```
+
+##### Peer.on('register', function (id) { })
+
+Emitted when the peer has registered it's id at the broker server. The callback function is invoked with the registered id as argument.
+
+### Connection
+
+Holds a WebRTC connection to an other peer. A connection is created via the method `Peer.connect(peerId)`.
+
+#### Methods
+
+##### `Connection.send(message)`
+
+- `@param {*} message`  The message to be send. Must be a valid JSON object.
+- `@return {Promise.<undefined, Error>}` Resolves when the message has been send
+
+##### `Connection.close()`
+
+Close the connection.
+
+- `@return {Promise.<undefined, Error>}` Resolves when the connection has been closed.
+
+#### Events
+
+##### Peer.on('close', function () { })
+
+Emitted when the connection has been closed (normally by the remote peer).
+
+##### Peer.on('error', function (error) { })
+
+Emitted when an error occurs. The callback function is invoked with the error as argument.
+
+##### Peer.on('message', function (message) { })
+
+Emitted when a message is received. The callback function is invoked with the received message as argument.
+
 
 
 ## Inspiration
