@@ -104,7 +104,16 @@
       peer = linkup.createPeer(peerId, {
         brokerUrl: location.origin.replace(/^http/, 'ws'),
         simplePeer: {
-          trickle: false
+          trickle: true,
+          iceServers: [
+            {
+              urls: [
+                'turn:74.125.22.127:19305',
+                'turn:74.125.134.127:19305',
+                'stun:stun.l.google.com:19302'
+              ]
+            }
+          ]
         }
       });
 
