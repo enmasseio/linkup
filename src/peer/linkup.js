@@ -7,12 +7,10 @@ export const DEFAULT_BROKER_URL = 'wss://linkup-broker.herokuapp.com';
 export const DEFAULT_SIMPLE_PEER_OPTIONS = {
   trickle: true,
   config: {
-    //iceServers: [ { url: 'stun:23.21.150.121' } ] // default of simple-peer
     iceServers: [
-      // https://gist.github.com/yetithefoot/7592580
-      //{
-      //  urls: ['stun:stun.services.mozilla.com']
-      //},
+      {
+        urls: ['stun:23.21.150.121' ] // default of simple-peer
+      },
       {
         urls: [
           'stun:stun.l.google.com:19302',
@@ -21,6 +19,15 @@ export const DEFAULT_SIMPLE_PEER_OPTIONS = {
           'stun:stun3.l.google.com:19302',
           'stun:stun4.l.google.com:19302'
         ]
+      },
+      // Free STUN/TURN service by Viagénie http://numb.viagenie.ca/
+      {
+        'url': 'stun:numb.viagenie.ca:3478'
+      },
+      {
+        'url': 'turn:numb.viagenie.ca:3478',
+        'username': 'jos@almende.org',
+        'credential': 'dHywSjue6gLn'
       }
     ]
   }
