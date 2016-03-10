@@ -21,7 +21,7 @@ Roadmap:
   a Google or Facebook id.
 - When setting up a WebRTC connection fails, fall back to a TURN server?
 
-`linkup` is by default configured to use the free STUN/TURN service from [Viagénie](http://numb.viagenie.ca/). You can configure your own STUN/TURN services.
+By default, `linkup` is configured to use the free STUN/TURN service from [Viagénie](http://numb.viagenie.ca/). You can configure your own STUN/TURN services if needed.
 
 
 ## Install
@@ -103,6 +103,16 @@ peer.send('peer2', 'hi peer2!')
       console.error(err);
     });
 ```
+
+
+## Similar libraries
+
+- http://peerjs.com/
+- https://webtorrent.io/
+- https://github.com/js-platform/p2p
+- https://github.com/InstantWebP2P/iwebpp.io
+- https://github.com/cjb/serverless-webrtc
+
 
 ## API
 
@@ -236,15 +246,6 @@ Emitted when a message is received. The callback function is invoked with the re
 #### Properties
 
 - `{string} Connection.id` The id of the remote peer.
-
-
-## Alternatives/inspiration
-
-- https://github.com/js-platform/p2p
-- https://webtorrent.io/
-- http://peerjs.com/
-- https://github.com/InstantWebP2P/iwebpp.io
-- https://github.com/cjb/serverless-webrtc
 
 
 ## Develop
