@@ -21,7 +21,12 @@ Roadmap:
   a Google or Facebook id.
 - When setting up a WebRTC connection fails, fall back to a TURN server?
 
-By default, `linkup` is configured to use the free STUN/TURN service from [Viagénie](http://numb.viagenie.ca/). You can configure your own STUN/TURN services if needed.
+
+## Requirements
+
+WebRTC relies on STUN and TURN servers for setting up connections between peers (via the ICE protocol). A STUN server is used to get an external network address, this is cheap and there are many STUN servers freely available. TURN servers are used to relay traffic if direct (peer to peer) connection fails. Since a TURN server passes all data the peers via the server, it requires a lot of bandwidth. Therefore TURN servers are not free.
+
+By default, `linkup` is configured to use the free STUN/TURN service from [Viagénie](http://numb.viagenie.ca/), which is great for development and will get you going without having to set something up. For production use you will have to use (and pay for) your own STUN/TURN server or service.
 
 
 ## Install
