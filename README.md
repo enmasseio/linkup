@@ -255,23 +255,24 @@ Emitted when a message is received. The callback function is invoked with the re
 ### Broker server protocol
 
 Peers communicate with the broker server to register them with an id and to do
-signalling with an other peer. The messages are stringified JSON.
+signalling with an other peer. Broker and peers send stringify JSON-RPC 2.0 messages
+over the WebSocket connection.
 
 A peer can send the following messages via a WebSocket to the broker:
 
 Request                          | Response
 -------------------------------- | ---------------------------------------------
-`{id: UUID, message: {type: 'ping'}}`                 | `{id: UUID, message: 'pong', error: null}`
-`{id: UUID, message: {type: 'find', id: 'peer-id'}}`  | `{id: UUID, message: 'peer-id' | null, error: null}`
-`{id: UUID, message: {type: 'register', id: 'peer-id'}}` | `{id: UUID, message: 'peer-id', error: null} | {id: UUID, message: null, error: Error}`
-`{id: UUID, message: {type: 'unregister'}}` | `{id: UUID, message: null, error: null}`
-`{message: {type: 'signal', from: 'peer-id', to: 'peer-id', signal: string}}` | No response, request is a notification
+`{id: UUID, method: 'ping', params: {}}`              | `{id: UUID, result: 'pong', error: null}`
+`{id: UUID, method: 'find', params: {id: 'peer-id'}}` | `{id: UUID, result: 'peer-id' | null, error: null}`
+`{id: UUID, method: 'register', {id: 'peer-id'}}`     | `{id: UUID, result: 'peer-id', error: null} | {id: UUID, result: null, error: Error}`
+`{id: UUID, method: 'unregister', params: {}}`        | `{id: UUID, result: null, error: null}`
+`{method: 'signal', params: {from: 'peer-id', to: 'peer-id', signal: Object}}` | No response, request is a notification
 
 A broker can send the following messages to a peer:
 
 Request                          | Response
 -------------------------------- | ---------------------------------------------
-`{message: {type: 'signal', from: 'peer-id', to: 'peer-id', signal: string}}` | No response, request is a notification
+`{method: 'signal', params: {from: 'peer-id', to: 'peer-id', signal: Object}}` | No response, request is a notification
 
 
 
