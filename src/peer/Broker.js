@@ -28,8 +28,7 @@ export default class Broker {
 
     this.options = options || {};
 
-    // map with all active peers
-    this.peerId = null; // our own id
+    // map with all active WebRTC connections (peers)
     this.peers = {};
 
     // open a WebSocket
@@ -83,21 +82,14 @@ export default class Broker {
 
   /**
    * Connect to a peer
+   * @param {string} from
    * @param {string} to
    * @return {Promise.<Connection, Error>}
    */
-  initiateConnection (to) {
-    debug(`initiate connection from ${this.peerId} to ${to}`);
+  initiateConnection (from, to) {
+    debug(`initiate connection from ${from} to ${to}`);
 
-    return this._waitUntilRegistered()
-        // first check whether this peer exists
-        .then((peerId) => {
-          if (to === peerId) {
-            throw new Error('Cannot connect to yourself dude');
-          }
-
-          return this.rpc.request('find', {id: to})
-        })
+    return this.rpc.request('find', {id: to})
         .then((peer) => {
           if (!peer) {
             throw new Error(`Peer not found (${to})`);
@@ -108,7 +100,7 @@ export default class Broker {
           let peer = this.peers[to];
           if (!peer) {
             let initiator = true;
-            peer = this._createPeer(to, initiator);
+            peer = this._createSimplePeer(from, to, initiator);
 
             // list the new peer
             this.peers[to] = peer;
@@ -124,23 +116,25 @@ export default class Broker {
   /**
    * Handle in incoming signal. Creates a new connection if it does not yet
    * exists, then deliver the signal.
-   * @param {{from: string, signal: string}} params
+   * @param {{from: string, to: string, signal: string}} params
    * @private
    */
   _handleSignal (params) {
     debug('handleSignal', params);
 
-    let id = params.from;
-    let peer = this.peers[id];
+    let from = params.to;
+    let to = params.from;
+    let peer = this.peers[to];
     if (!peer) {
+      // create a new WebRTC peer if this is the first signal for a new peer connection
       let initiator = false;
-      peer = this._createPeer(id, initiator);
+      peer = this._createSimplePeer(from, to, initiator);
 
       // list the new peer
-      this.peers[id] = peer;
-      peer.on('close', () => delete this.peers[id]);
+      this.peers[to] = peer;
+      peer.on('close', () => delete this.peers[to]);
 
-      this.emit('connection', new Connection(id, peer));
+      this.emit('connection', new Connection(to, peer));
     }
 
     // deliver the signal
@@ -150,17 +144,11 @@ export default class Broker {
   /**
    * Register a peer by id
    * @param peerId
+   * @return {Promise<string, Error>} Resolves with the registered peer id
    */
   register (peerId) {
     return this._waitUntilConnected()
-        .then(() => {
-          return this.rpc.request('register', {id: peerId})
-        })
-        .then((peerId) => {
-          this.peerId = peerId;
-          this.emit('register', peerId);
-          return peerId;
-        });
+        .then(() => this.rpc.request('register', {id: peerId}));
   }
 
   // TODO: implement unregister
@@ -173,27 +161,23 @@ export default class Broker {
   }
 
   /**
-   * Create a new SimplePeer
+   * Create a new SimplePeer (a WebRTC connection)
+   * @param {string} from
    * @param {string} to
    * @param {boolean} initiator
    * @return {SimplePeer}
    * @private
    */
-  _createPeer (to, initiator) {
+  _createSimplePeer (from, to, initiator) {
     let options = extend({}, this.options, {initiator});
     let peer = new UniversalSimplePeer(options);
 
     peer.on('signal', (data) => {
       debugWebRTC('signal', data);
 
-      this._waitUntilRegistered()
-          .then((from) => {
-            return this.rpc.notify('signal', {from, to, signal: data })
-          })
-          .catch((err) => {
-            console.log('error catching...', err);
-            this.emit('error', err)
-          });
+      this.rpc
+          .notify('signal', {from, to, signal: data })
+          .catch((err) => {this.emit('error', err)});
     });
 
     return peer;
@@ -223,22 +207,6 @@ export default class Broker {
 
       default:
         return Promise.reject(new Error('WebSocket has an unknown readyState'));
-    }
-  }
-
-  /**
-   * Wait until the peer has registered it's id at the broker
-   * @return {Promise.<string, Error>} Resolves with the registered id
-   * @private
-   */
-  _waitUntilRegistered () {
-    if (this.peerId) {
-      return Promise.resolve(this.peerId);
-    }
-    else {
-      return new Promise((resolve, reject) => {
-        this.once('register', resolve);
-      });
     }
   }
 

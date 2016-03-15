@@ -23,6 +23,7 @@ export default class Peer {
      * @type {string} the peers own id
      */
     this.id = id;
+    this._registered = false;
 
     /**
      * @type {Object.<string, Connection>}
@@ -44,12 +45,31 @@ export default class Peer {
    * @private
    */
   _register () {
+    this._registered = false;
+
     this._broker.register(this.id)
         .then((id) => {
           debug(`Registered at broker with id ${JSON.stringify(id)}`);
+          this._registered = true;
           this.emit('register', id);
         })
         .catch((err) => this.emit('error', err));
+  }
+
+  /**
+   * Wait until the peer has registered it's id at the broker
+   * @return {Promise.<string, Error>} Resolves with the registered id
+   * @private
+   */
+  _waitUntilRegistered () {
+    if (this._registered) {
+      return Promise.resolve(this.id);
+    }
+    else {
+      return new Promise((resolve, reject) => {
+        this.once('register', resolve);
+      });
+    }
   }
 
   /**
@@ -60,21 +80,26 @@ export default class Peer {
    */
   connect (peerId) {
     let connection = this._connections[peerId];
+    if (this.id === peerId) {
+      return Promise.reject(new Error('Cannot connect to yourself dude'));
+    }
+
     if (connection) {
       return Promise.resolve(connection);
     }
-    else {
-      return this._broker.initiateConnection(peerId)
-          .then((connection) => {
-            this._connections[peerId] = connection;
-            return connection;
-          })
-    }
+
+    // create a new connection
+    return this._waitUntilRegistered()
+        .then(() => this._broker.initiateConnection(this.id, peerId))
+        .then((connection) => {
+          this._connections[peerId] = connection;
+          return connection;
+        })
   }
 
   /**
    * Handle a new connection
-   * @param {{id: string, peer: SimplePeer, ready: Promise}} connection
+   * @param {Connection} connection
    * @private
    */
   _handleConnection (connection) {
