@@ -197,10 +197,10 @@ export default class Broker {
 
       this._waitUntilRegistered()
           .then((from) => {
-            return this.requestSocket.request({ type: 'signal', from, to, signal: data })
+            return this.requestSocket.notify({ type: 'signal', from, to, signal: data })
           })
           .catch((err) => {
-            console.log('error catching...', err)
+            console.log('error catching...', err);
             this.emit('error', err)
           });
     });
