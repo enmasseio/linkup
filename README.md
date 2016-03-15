@@ -264,6 +264,7 @@ Request                          | Response
 `{id: UUID, message: {type: 'ping'}}`                 | `{id: UUID, message: 'pong', error: null}`
 `{id: UUID, message: {type: 'find', id: 'peer-id'}}`  | `{id: UUID, message: 'peer-id' | null, error: null}`
 `{id: UUID, message: {type: 'register', id: 'peer-id'}}` | `{id: UUID, message: 'peer-id', error: null} | {id: UUID, message: null, error: Error}`
+`{id: UUID, message: {type: 'unregister'}}` | `{id: UUID, message: null, error: null}`
 `{message: {type: 'signal', from: 'peer-id', to: 'peer-id', signal: string}}` | No response, request is a notification
 
 A broker can send the following messages to a peer:
