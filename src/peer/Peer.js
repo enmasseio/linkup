@@ -28,16 +28,16 @@ export default class Peer {
     /**
      * @type {Object.<string, Connection>}
      */
-    this.connections = {}; // connections to peers
+    this._connections = {}; // connections to peers
 
     /**
      * create a broker
      * @type {Broker}
      */
-    this.broker = new Broker(options.brokerUrl, options.simplePeer);
-    this.broker.on('connection', (connection) => this._handleConnection(connection));
-    this.broker.on('open', () => this._register());
-    this.broker.on('error', (err) => this.emit('error', err));
+    this._broker = new Broker(options.brokerUrl, options.simplePeer);
+    this._broker.on('connection', (connection) => this._handleConnection(connection));
+    this._broker.on('open', () => this._register());
+    this._broker.on('error', (err) => this.emit('error', err));
   }
 
   /**
@@ -45,7 +45,7 @@ export default class Peer {
    * @private
    */
   _register () {
-    this.broker.register(this.id)
+    this._broker.register(this.id)
         .then((id) => {
           debug(`Registered at broker with id ${JSON.stringify(id)}`);
           this.emit('register', id);
@@ -60,14 +60,14 @@ export default class Peer {
    * @return {Promise.<Connection, Error>} Resolves with a connection
    */
   connect (peerId) {
-    let connection = this.connections[peerId];
+    let connection = this._connections[peerId];
     if (connection) {
       return Promise.resolve(connection);
     }
     else {
-      return this.broker.initiateConnection(peerId)
+      return this._broker.initiateConnection(peerId)
           .then((connection) => {
-            this.connections[peerId] = connection;
+            this._connections[peerId] = connection;
             return connection;
           })
     }
@@ -81,7 +81,7 @@ export default class Peer {
   _handleConnection (connection) {
     // add the new connection to the map with open connections
     let peerId = connection.id;
-    this.connections[peerId] = connection;
+    this._connections[peerId] = connection;
 
     connection.on('message', (message) => {
       debug('received message from', peerId, ':', message);
@@ -93,7 +93,7 @@ export default class Peer {
     connection.on('error', (err) => this.emit('error', err));
     connection.on('close', () => {
       debug('disconnected from peer ', peerId);
-      delete this.connections[peerId];
+      delete this._connections[peerId];
     });
 
     this.emit('connection', connection);
@@ -107,9 +107,9 @@ export default class Peer {
   disconnect (peerId) {
     debug('disconnect from peer ', peerId);
 
-    let connection = this.connections[peerId];
+    let connection = this._connections[peerId];
     if (connection) {
-      delete this.connections[peerId];
+      delete this._connections[peerId];
 
       return connection.close();
     }
@@ -137,10 +137,10 @@ export default class Peer {
    * @return {Promise}
    */
   close() {
-    this.broker.close();
-    this.broker = null;
+    this._broker.close();
+    this._broker = null;
 
-    let closeConnections = Object.keys(this.connections)
+    let closeConnections = Object.keys(this._connections)
         .map(peerId => this.disconnect(peerId));
 
     return Promise.all(closeConnections);

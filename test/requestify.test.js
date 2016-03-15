@@ -125,4 +125,6 @@ describe('requestify', function () {
         });
   });
 
+  // TODO: test notify
+
 });

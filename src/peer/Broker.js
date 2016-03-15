@@ -40,15 +40,15 @@ export default class Broker {
     this.pingTimer = null; // timer used to keep the WebSocket alive
 
     // requestify the WebSocket
-    this.connection = requestify();
-    this.connection.send = (message) => {
-      debugSocket('send message', message);
-      this.socket.send(message);
-    };
-
+    this.requestSocket = requestify({
+      send: (message) => {
+        debugSocket('send message', message);
+        this.socket.send(message);
+      }
+    });
     this.socket.onmessage = (event) => {
       debugSocket('receive message', event.data);
-      this.connection.receive(event.data);
+      this.requestSocket.receive(event.data);
     };
 
     this.socket.onopen = () => {
@@ -58,7 +58,7 @@ export default class Broker {
       // Heroku will close a WebSocket after 55 seconds of inactivity
       this.pingTimer = setInterval(() => {
         debug('Send ping to keep the WebSocket alive...');
-        this.connection.request({type: 'ping'})
+        this.requestSocket.request({type: 'ping'})
             .catch((err) => this.emit('error', err));
       }, 45000);
 
@@ -81,7 +81,7 @@ export default class Broker {
     this.functions = {
       signal: (message) => this._handleSignal(message)
     };
-    this.connection.on('request', (message) => {
+    this.requestSocket.on('request', (message) => {
       let fn = this.functions[message.type];
       if (!fn) {
         throw new Error(`Unknown message type "${message.type}"`);
@@ -105,7 +105,7 @@ export default class Broker {
             throw new Error('Cannot connect to yourself dude');
           }
 
-          return this.connection.request({type: 'find', id: to})
+          return this.requestSocket.request({type: 'find', id: to})
         })
         .then((peer) => {
           if (!peer) {
@@ -163,7 +163,7 @@ export default class Broker {
   register (peerId) {
     return this._waitUntilConnected()
         .then(() => {
-          return this.connection.request({type: 'register', id: peerId})
+          return this.requestSocket.request({type: 'register', id: peerId})
         })
         .then((peerId) => {
           this.peerId = peerId;
@@ -197,7 +197,7 @@ export default class Broker {
 
       this._waitUntilRegistered()
           .then((from) => {
-            return this.connection.request({ type: 'signal', from, to, signal: data })
+            return this.requestSocket.request({ type: 'signal', from, to, signal: data })
           })
           .catch((err) => {
             console.log('error catching...', err)

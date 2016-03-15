@@ -13,20 +13,22 @@ var TIMEOUT = 60000; // ms
  *     var mySocket = new WebSocket('ws://localhost:3000');
  *
  *     // connect send and receive function of the WebSocket (or other transport)
- *     var rpc = requestify({
+ *     var requester = requestify({
  *       send: function (message) {
  *         mySocket.send(message);
  *       }
  *     });
- *     mySocket.on('message', rpc.receive);
+ *     mySocket.onmessage = function (event) {
+ *       requester.receive(event.data);
+ *     }
  *
  *     // to handle an incoming request
- *     rpc.on('request', function (message) {
+ *     requester.on('request', function (message) {
  *       return 'some response';
  *     });
  *
  *     // to send a request
- *     rpc.request(message)
+ *     requester.request(message)
  *         .then(function (response) {
  *           console.log('response', response);
  *         })
@@ -35,16 +37,18 @@ var TIMEOUT = 60000; // ms
  *         });
  *
  * @param {{send: function (message)}} params
- * @return {{request: function, notify: function, send: function, receive: function}} RPC object
+ * @return {{request: function, notify: function, send: function, receive: function}} requester object
  */
 export function requestify (params) {
   return (function () {
     var queue = {};   // queue with requests in progress
 
-    var rpc = {
-      send: params && params.send || function () {
-        throw new Error('Cannot send messages, no send function defined. Define as rpc.send = function (message) {...}')
-      }
+    if (!params || typeof params.send !== 'function') {
+      throw new Error('Required property send (a function) missing')
+    }
+
+    var requester = {
+      send: params.send
     };
 
     /**
@@ -69,7 +73,7 @@ export function requestify (params) {
 
     var requestListener = function () {
       throw new Error('Cannot handle incoming request, no request listener. ' +
-          'Register with rpc.on(\'request\', function (message) {return ...})');
+          'Register with requester.on(\'request\', function (message) {return ...})');
     };
 
     /**
@@ -77,7 +81,7 @@ export function requestify (params) {
      * @param {string} event   Available events: 'request'
      * @param {function} callback
      */
-    rpc.on = function (event, callback) {
+    requester.on = function (event, callback) {
       if (event === 'request') {
         requestListener = callback;
       }
@@ -90,7 +94,7 @@ export function requestify (params) {
      * Event handler, handles incoming messages
      * @param {string} data
      */
-    rpc.receive = function (data) {
+    requester.receive = function (data) {
       if (data.charAt(0) == '{') {
         var envelope = JSON.parse(data);
 
@@ -120,7 +124,7 @@ export function requestify (params) {
                     message: message,
                     error: null
                   };
-                  rpc.send(JSON.stringify(response));
+                  requester.send(JSON.stringify(response));
                 })
                 .catch(function (error) {
                   var response = {
@@ -128,7 +132,7 @@ export function requestify (params) {
                     message: null,
                     error: error.message || error.toString()
                   };
-                  rpc.send(JSON.stringify(response));
+                  requester.send(JSON.stringify(response));
                 });
           }
           else {
@@ -144,7 +148,7 @@ export function requestify (params) {
      * @param {*} message
      * @returns {Promise.<*, Error>} Returns a promise resolving with the response message
      */
-    rpc.request = function (message) {
+    requester.request = function (message) {
       return new Promise(function (resolve, reject) {
         // put the data in an envelope with id
         var id = uuid();
@@ -163,7 +167,7 @@ export function requestify (params) {
           }, TIMEOUT)
         };
 
-        rpc.send(JSON.stringify(envelope));
+        requester.send(JSON.stringify(envelope));
       });
     };
 
@@ -173,7 +177,7 @@ export function requestify (params) {
      * @returns {Promise.<null, Error>} Returns a promise resolving with the null
      *                                  when the notification has been sent.
      */
-    rpc.notify = function (message) {
+    requester.notify = function (message) {
       return new Promise(function (resolve, reject) {
         // put the data in an envelope
         var envelope = {
@@ -181,13 +185,13 @@ export function requestify (params) {
           message: message
         };
 
-        rpc.send(JSON.stringify(envelope));
+        requester.send(JSON.stringify(envelope));
 
         resolve(null);
       });
     };
 
-    return rpc;
+    return requester;
   })();
 }
 
