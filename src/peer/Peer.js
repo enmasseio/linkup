@@ -3,7 +3,6 @@
 import Emitter from 'emitter-component';
 
 import { universalDebug } from './universal/universalDebug';
-import { requestify } from '../shared/requestify';
 import Broker from './Broker';
 
 let debug = universalDebug('linkup:peer');

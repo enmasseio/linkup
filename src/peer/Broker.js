@@ -6,7 +6,7 @@ import { universalDebug } from './universal/universalDebug';
 import { UniversalWebSocket } from './universal/UniversalWebSocket';
 import { UniversalSimplePeer }  from './universal/UniversalSimplePeer';
 
-import { requestify } from '../shared/requestify';
+import { JSONRPC } from '../shared/JSONRPC';
 import { Connection } from './Connection';
 
 let debug = universalDebug('linkup:broker');
@@ -39,8 +39,8 @@ export default class Broker {
     });
     this.pingTimer = null; // timer used to keep the WebSocket alive
 
-    // requestify the WebSocket
-    this.requestSocket = requestify({
+    // Create a JSON-RPC layer over the WebSocket
+    this.rpc = JSONRPC({
       send: (message) => {
         debugSocket('send message', message);
         this.socket.send(message);
@@ -48,7 +48,7 @@ export default class Broker {
     });
     this.socket.onmessage = (event) => {
       debugSocket('receive message', event.data);
-      this.requestSocket.receive(event.data);
+      this.rpc.receive(event.data);
     };
 
     this.socket.onopen = () => {
@@ -58,7 +58,7 @@ export default class Broker {
       // Heroku will close a WebSocket after 55 seconds of inactivity
       this.pingTimer = setInterval(() => {
         debug('Send ping to keep the WebSocket alive...');
-        this.requestSocket.request({type: 'ping'})
+        this.rpc.request('ping', {})
             .catch((err) => this.emit('error', err));
       }, 45000);
 
@@ -77,17 +77,8 @@ export default class Broker {
       this.emit('error', err);
     };
 
-    // handle an incoming request
-    this.functions = {
-      signal: (message) => this._handleSignal(message)
-    };
-    this.requestSocket.on('request', (message) => {
-      let fn = this.functions[message.type];
-      if (!fn) {
-        throw new Error(`Unknown message type "${message.type}"`);
-      }
-      return fn(message);
-    });
+    // handle an incoming signals
+    this.rpc.on('signal', (params) => this._handleSignal(params));
   }
 
   /**
@@ -105,7 +96,7 @@ export default class Broker {
             throw new Error('Cannot connect to yourself dude');
           }
 
-          return this.requestSocket.request({type: 'find', id: to})
+          return this.rpc.request('find', {id: to})
         })
         .then((peer) => {
           if (!peer) {
@@ -133,13 +124,13 @@ export default class Broker {
   /**
    * Handle in incoming signal. Creates a new connection if it does not yet
    * exists, then deliver the signal.
-   * @param message
+   * @param {{from: string, signal: string}} params
    * @private
    */
-  _handleSignal (message) {
-    debug('handleSignal', message);
+  _handleSignal (params) {
+    debug('handleSignal', params);
 
-    let id = message.from;
+    let id = params.from;
     let peer = this.peers[id];
     if (!peer) {
       let initiator = false;
@@ -153,7 +144,7 @@ export default class Broker {
     }
 
     // deliver the signal
-    peer.signal(message.signal);
+    peer.signal(params.signal);
   }
 
   /**
@@ -163,7 +154,7 @@ export default class Broker {
   register (peerId) {
     return this._waitUntilConnected()
         .then(() => {
-          return this.requestSocket.request({type: 'register', id: peerId})
+          return this.rpc.request('register', {id: peerId})
         })
         .then((peerId) => {
           this.peerId = peerId;
@@ -197,7 +188,7 @@ export default class Broker {
 
       this._waitUntilRegistered()
           .then((from) => {
-            return this.requestSocket.notify({ type: 'signal', from, to, signal: data })
+            return this.rpc.notify('signal', {from, to, signal: data })
           })
           .catch((err) => {
             console.log('error catching...', err);

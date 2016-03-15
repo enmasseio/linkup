@@ -7,7 +7,7 @@ var express = require('express');
 
 // es6 imports
 import { register, unregister, find } from './register';
-import { requestify } from '../shared/requestify';
+import { JSONRPC } from '../shared/JSONRPC';
 
 
 function createServer (port) {
@@ -30,16 +30,19 @@ function createServer (port) {
 
     debugSocket('A peer connected');
 
-    // requestify the WebSocket
-    var connection = requestify({
+    var peerId = null; // id of the peer. Will be filled in when the peer registers
+
+    // Create a JSON-RPC layer on top of the WebSocket
+    var rpc = JSONRPC({
       send: function (message) {
         debugSocket('send message', message);
         socket.send(message)
       }
     });
+    socket.rpc = rpc;
     socket.on('message', function (message) {
       debugSocket('receive message', message);
-      connection.receive(message);
+      rpc.receive(message);
     });
 
     socket.on('error', function (err) {
@@ -49,83 +52,46 @@ function createServer (port) {
     socket.on('close', function () {
       debugSocket('A peer disconnected');
 
-      unregister(connection);
+      unregister(socket);
     });
 
-    // handle incoming requests
-    connection.on('request', function (message) {
-      var fn = functions[message.type];
-      if (!fn) {
-        throw new Error(`Unknown message type "${message.type}"`);
-      }
-      return fn(connection, message);
-    });
-
-  });
-
-
-  var functions = {
-    /**
-     * A simple ping function, used to keep a WebSocket alive
-     * @return {string}
-     */
-    ping: function () {
+    // ping method used by the client to keep the WebSocket alive
+    rpc.on('ping', function (params) {
       return 'pong';
-    },
+    });
 
-    /**
-     * Register an id for a peer
-     * @param {Object} connection
-     * @param {{type: 'register', id: string}} message
-     * @return {string} Returns the peers id
-     */
-    register: function (connection, message) {
-      var id = register(connection, message.id);
-      connection.linkupId = id;
-      return id;
-    },
+    // register a peers id
+    rpc.on('register', function (params) {
+      peerId = register(socket, params.id);
+      return peerId;
+    });
 
-    /**
-     * Unregister this peer
-     * @param {Object} connection
-     * @param {{type: 'unregister'}} message
-     */
-    unregister: function (connection, message) {
-      unregister(connection);
-    },
+    // unregister a peers id
+    rpc.on('unregister', function () {
+      unregister(socket);
+    });
 
-    /**
-     * Find a peer by it's id
-     * @param {Object} connection
-     * @param {{type: 'find', id: string}} message
-     * @return {{id: string} | null} Returns the peer when found,
-     *                               else returns null
-     */
-    find: function (connection, message) {
-      return find(message.id)
-          ? {id: message.id}
+    // find a peer, see if it exists
+    rpc.on('find', function (params) {
+      return find(params.id)
+          ? {id: params.id}
           : null;
-    },
+    });
 
-    /**
-     * Send a signal to an other peer
-     * @param {Object} connection
-     * @param {{type: 'signal', from: string, to: string, signal: string}} message
-     * @return {Promise.<undefined, Error>}
-     */
-    signal: function (connection, message) {
-      if (message.from !== connection.linkupId) {
+    // pass a signal to another peer
+    rpc.on('signal', function (params) {
+      if (params.from !== peerId) {
         throw new Error(
-            `Invalid id. message.from (${JSON.stringify(message.from)}) does not match the id of the the connection (${JSON.stringify(connection.linkupId)})`)
+            `Invalid id. params.from (${JSON.stringify(params.from)}) does not match the id of the the connection (${JSON.stringify(peerId)})`)
       }
 
-      let to = find(message.to);
-      if (!to) {
-        throw new Error(`Peer not found (${message.to})`);
+      let toSocket = find(params.to);
+      if (!toSocket) {
+        throw new Error(`Peer not found (${params.to})`);
       }
-      return to.request(message);
-    }
-  };
+      return toSocket.rpc.request('signal', params);
+    });
+  });
 
   server.on('request', app);
   server.listen(port, function() {

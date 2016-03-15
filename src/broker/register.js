@@ -3,15 +3,15 @@
 var debug = require('debug')('linkup:register');
 
 /**
- * @type {Object.<string, Socket>} peers    Map with all registered peers by their id
+ * @type {Object.<string, WebSocket>} peers    Map with all registered peers by their id
  */
 let peers = {};
 
 
-export function register(connection, id) {
+export function register(socket, id) {
   debug('add', id);
 
-  let previousId = findPeerBySocket(connection);
+  let previousId = findPeerBySocket(socket);
   if (previousId !== undefined) {
     if (previousId === id) {
       // same id, nothing to do
@@ -27,13 +27,13 @@ export function register(connection, id) {
     throw new Error(`id "${id}" already taken`);
   }
 
-  peers[id] = connection;
+  peers[id] = socket;
 
   return id;
 }
 
-export function unregister(connection) {
-  let id = findPeerBySocket(connection);
+export function unregister(socket) {
+  let id = findPeerBySocket(socket);
   debug('remove', id);
 
   if (id !== undefined) {
@@ -41,8 +41,8 @@ export function unregister(connection) {
   }
 }
 
-function findPeerBySocket(connection) {
-  return Object.keys(peers).find(id => peers[id] === connection);
+function findPeerBySocket(socket) {
+  return Object.keys(peers).find(id => peers[id] === socket);
 }
 
 export function find (id) {
