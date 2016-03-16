@@ -7,8 +7,8 @@ export const UniversalSimplePeer = isNode
 
 
 function NodeSimplePeer (options = {}) {
-  var SimplePeer = require('simple-peer');
-  var wrtc = require('wrtc');
+  let SimplePeer = require('simple-peer');
+  let wrtc = require('wrtc');
 
   options.wrtc = wrtc;
 

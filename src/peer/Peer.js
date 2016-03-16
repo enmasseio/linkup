@@ -134,7 +134,8 @@ export default class Peer {
   _createConnection (id, options) {
     debug('create connection', id, options);
 
-    let connection = new Connection(extend({}, this.options.simplePeer || {}, options));
+    let _options = extend({}, this.options.simplePeer || {}, options);
+    let connection = new Connection(id, _options);
 
     // list the new connection
     this._connections[id] = connection;
@@ -145,8 +146,9 @@ export default class Peer {
 
     connection.on('close', () => {
       debug('disconnected from peer ', id);
-      // TODO: emit a disconnect event
       delete this._connections[id];
+
+      this.emit('close', connection);
     });
 
     // TODO: should we verify the from field in the signal and messages?

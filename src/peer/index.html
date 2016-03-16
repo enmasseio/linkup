@@ -108,6 +108,12 @@
       peer.on('register', function () {
         DOMConsole.info('Registered as', peerId);
       });
+      peer.on('connection', function (connection) {
+        DOMConsole.info('Connected with peer', connection.id);
+      });
+      peer.on('close', function (connection) {
+        DOMConsole.info('Disconnected from peer', connection.id);
+      });
       peer.on('error', function (err) {
         console.error(err);
         DOMConsole.error(err);

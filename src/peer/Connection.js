@@ -7,10 +7,15 @@ let debug = universalDebug('linkup:connection');
 export class Connection {
 
   /**
-   * Wrapper for a SimplePeer connection
+   * Wrapper for a SimplePeer connection.
+   * The wrapper will stringify and parse sent/received messages,
+   * and waits with sending a message until the peer is ready.
+   * @param {string} id        Id of the remote peer
    * @param {Options} options  options for SimplePeer
    */
-  constructor (options) {
+  constructor (id, options) {
+    this.id = id;
+
     // create a SimplePeer (WebRTC connection)
     this._simplePeer = new UniversalSimplePeer(options);
 

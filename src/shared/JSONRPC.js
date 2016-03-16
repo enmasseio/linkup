@@ -1,14 +1,16 @@
 "use strict";
 
+import {uuid} from './uuid';
+
 /**
  * Extend a messaging channel like a WebSocket with a JSON-RPC 2.0 layer.
  *
  * Usage:
  *
- *     var mySocket = new WebSocket('ws://localhost:3000');
+ *     let mySocket = new WebSocket('ws://localhost:3000');
  *
  *     // connect send and receive function of the WebSocket (or other transport)
- *     var rpc = JSONRPC({
+ *     let rpc = JSONRPC({
  *       send: function (data) {
  *         mySocket.send(data);
  *       }
@@ -36,13 +38,13 @@
  */
 export function JSONRPC (params) {
   return (function () {
-    var queue = {};   // queue with requests in progress
+    let queue = {};   // queue with requests in progress
 
     if (!params || typeof params.send !== 'function') {
       throw new Error('Required property send missing or not a function')
     }
 
-    var rpc = {
+    let rpc = {
       TIMEOUT: 50000, // ms
       send: params.send,
       methods: {}
@@ -54,17 +56,17 @@ export function JSONRPC (params) {
      * @param {Object} params
      * @return {Promise}
      */
-    var onRequest = function (method, params) {
+    let onRequest = function (method, params) {
       try {
-        var fn = rpc.methods[method];
+        let fn = rpc.methods[method];
         if (!fn) {
-          var err = new Error(`Method not found ("${method}")`);
+          let err = new Error(`Method not found ("${method}")`);
           err.code = -32601; // method not found
           err.data = { method };
           return Promise.reject(err);
         }
 
-        var result = fn(params);
+        let result = fn(params);
         if (isPromise(result)) {
           return result;
         }
@@ -95,10 +97,10 @@ export function JSONRPC (params) {
         return;
       }
 
-      var message = JSON.parse(data);
+      let message = JSON.parse(data);
 
       // match the request from the id in the response
-      var request = queue[message.id];
+      let request = queue[message.id];
       if (request) {
         // handle an incoming response
         clearTimeout(request.timeout);
@@ -107,7 +109,7 @@ export function JSONRPC (params) {
         // resolve the promise with response data
         if (message.error) {
           // TODO: implement a smarter way to serialize and deserialize errors
-          var err = new Error(message.error.message);
+          let err = new Error(message.error.message);
           err.code = message.error.code || null;
           err.data = message.error.data || null;
           request.reject(err);
@@ -121,7 +123,7 @@ export function JSONRPC (params) {
           // handle an incoming request
           onRequest(message.method, message.params)
               .then(function (result) {
-                var response = {
+                let response = {
                   jsonrpc: '2.0',
                   id: message.id,
                   result,
@@ -130,7 +132,7 @@ export function JSONRPC (params) {
                 rpc.send(JSON.stringify(response));
               })
               .catch(function (error) {
-                var response = {
+                let response = {
                   jsonrpc: '2.0',
                   id: message.id,
                   result: null,
@@ -161,8 +163,8 @@ export function JSONRPC (params) {
      */
     rpc.request = function (method, params) {
       return new Promise(function (resolve, reject) {
-        var id = uuid();
-        var request = { jsonrpc: '2.0', id, method, params };
+        let id = uuid();
+        let request = { jsonrpc: '2.0', id, method, params };
 
         // add the request to the list with requests in progress
         queue[id] = {
@@ -188,7 +190,7 @@ export function JSONRPC (params) {
     rpc.notify = function (method, params) {
       return new Promise(function (resolve, reject) {
         // we don't add an id, so we send this as notification instead of a request
-        var notification = { jsonrpc: '2.0', method, params };
+        let notification = { jsonrpc: '2.0', method, params };
 
         rpc.send(JSON.stringify(notification));
 
@@ -198,22 +200,6 @@ export function JSONRPC (params) {
 
     return rpc;
   })();
-}
-
-/**
- * Generate a UUID
- * http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
- * // TODO: use some official uuid library
- * @return {string}
- */
-function uuid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-        .toString(16)
-        .substring(1);
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-      s4() + '-' + s4() + s4() + s4();
 }
 
 /**

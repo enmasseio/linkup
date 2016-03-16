@@ -188,7 +188,13 @@ WebRTC connections to peers.
 
 ##### Peer.on('connection', function (connection) { })
 
-Emitted when a new connection is created by a remote peer. The connection (type `Connection`) is passed as argument to the callback function.
+Emitted when a new connection is created by a remote peer. The peer id and
+connection (type `Connection`) is passed as argument to the callback function.
+
+##### Peer.on('close', function (connection) { })
+
+Emitted when a connection is closed. The peer id and connection
+(type `Connection`) is passed as argument to the callback function.
 
 ##### Peer.on('error', function (error) { })
 

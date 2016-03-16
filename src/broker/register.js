@@ -1,6 +1,6 @@
 "use strict";
 
-var debug = require('debug')('linkup:register');
+let debug = require('debug')('linkup:register');
 
 /**
  * @type {Object.<string, WebSocket>} peers    Map with all registered peers by their id

@@ -1,9 +1,9 @@
 'use strict';
 
 // commonjs imports
-var url = require('url');
-var WebSocketServer = require('ws').Server;
-var express = require('express');
+let url = require('url');
+let WebSocketServer = require('ws').Server;
+let express = require('express');
 
 // es6 imports
 import { register, unregister, find } from './register';
@@ -13,27 +13,27 @@ import { JSONRPC } from '../shared/JSONRPC';
 function createServer (port) {
   port = port || 3000;
 
-  var debug = require('debug')('linkup:server');
-  var debugSocket = require('debug')('linkup:socket');
-  var app = express();
-  var server = require('http').createServer();
+  let debug = require('debug')('linkup:server');
+  let debugSocket = require('debug')('linkup:socket');
+  let app = express();
+  let server = require('http').createServer();
 
   // serve static files from folder dist
   app.use(express.static('dist'));
 
-  var wss = new WebSocketServer({ server: server });
+  let wss = new WebSocketServer({ server: server });
 
   wss.on('connection', function connection(socket) {
-    var location = url.parse(socket.upgradeReq.url, true);
+    let location = url.parse(socket.upgradeReq.url, true);
     // you might use location.query.access_token to authenticate or share sessions
     // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
 
     debugSocket('A peer connected');
 
-    var peerId = null; // id of the peer. Will be filled in when the peer registers
+    let peerId = null; // id of the peer. Will be filled in when the peer registers
 
     // Create a JSON-RPC layer on top of the WebSocket
-    var rpc = JSONRPC({
+    let rpc = JSONRPC({
       send: function (message) {
         debugSocket('send message', message);
         socket.send(message)
@@ -101,5 +101,5 @@ function createServer (port) {
   return app;
 }
 
-var PORT = process.env.PORT || 5000;
+let PORT = process.env.PORT || 5000;
 createServer(PORT);
