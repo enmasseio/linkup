@@ -19,7 +19,6 @@ Roadmap:
 - Support for Android and iOS.
 - Support for letting peers authenticate each other for example with
   a Google or Facebook id.
-- When setting up a WebRTC connection fails, fall back to a TURN server?
 
 
 ## Requirements

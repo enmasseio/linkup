@@ -1,6 +1,6 @@
 # Changelog
 
-## not-yet-released, v0.4.0
+## 2016-03-16, v0.4.0
 
 - Switched to JSON-RPC protocol for communication between broker and peers.
 - Implemented support for scaling the broker server, can now run in a cluster.
