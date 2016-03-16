@@ -24,7 +24,7 @@ export class Connection {
     this._simplePeer.on('close', () => this.emit('close'));
     this._simplePeer.on('error', (err) => this.emit('error', err));
     this._simplePeer.on('data',  (message) => this.emit('message', JSON.parse(message)));
-    this._simplePeer.on('signal', (message) => this.emit('signal', message));
+    this._simplePeer.on('signal', (signal) => this.emit('signal', signal));
 
     // turn into an event emitter
     Emitter(this);

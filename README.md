@@ -254,6 +254,11 @@ Emitted when an error occurs. The callback function is invoked with the error as
 
 Emitted when a message is received. The callback function is invoked with the received message as argument.
 
+##### Connection.on('signal', function (signal) { })
+
+Emitted when a WebRTC signal is received. The callback function is invoked with
+the received signal as argument.
+
 #### Properties
 
 - `{string} Connection.id` The id of the remote peer.
