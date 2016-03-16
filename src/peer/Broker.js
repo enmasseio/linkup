@@ -1,5 +1,4 @@
 import Emitter from 'emitter-component';
-import extend from 'extend';
 
 import ReconnectingWebSocket from './ReconnectingWebSocket';
 import { universalDebug } from './universal/universalDebug';
@@ -11,22 +10,15 @@ import { Connection } from './Connection';
 
 let debug = universalDebug('linkup:broker');
 let debugSocket = universalDebug('linkup:socket');
-let debugWebRTC = universalDebug('linkup:webrtc');
 
-export default class Broker {
+export class Broker {
   /**
    * Create a new Broker
    * @param {string} url
-   * @param {Object} [options]  Optional object with options for a SimplePeer
-   *                            connection. The available options are described
-   *                            in the SimplePeer docs:
-   *                            https://github.com/feross/simple-peer#api
    */
-  constructor (url, options) {
+  constructor (url) {
     // Turn the broker into an event emitter
     Emitter(this);
-
-    this.options = options || {};
 
     // map with all active WebRTC connections (peers)
     this.peers = {};
@@ -76,69 +68,20 @@ export default class Broker {
       this.emit('error', err);
     };
 
-    // handle an incoming signals
-    this.rpc.on('signal', (params) => this._handleSignal(params));
+    // pass incoming signals
+    this.rpc.on('signal', (message) => {
+      this.emit('signal', message);
+      return undefined;
+    });
   }
 
   /**
-   * Connect to a peer
-   * @param {string} from
-   * @param {string} to
-   * @return {Promise.<Connection, Error>}
+   * Test whether some peer exists
+   * @param id
+   * @return {Promise.<boolean, Error>}
    */
-  initiateConnection (from, to) {
-    debug(`initiate connection from ${from} to ${to}`);
-
-    return this.rpc.request('find', {id: to})
-        .then((peer) => {
-          if (!peer) {
-            throw new Error(`Peer not found (${to})`);
-          }
-        })
-        // if the peer exists, create a connection
-        .then(() => {
-          let peer = this.peers[to];
-          if (!peer) {
-            let initiator = true;
-            peer = this._createSimplePeer(from, to, initiator);
-
-            // list the new peer
-            this.peers[to] = peer;
-            peer.on('close', () => delete this.peers[to]);
-
-            this.emit('connection', new Connection(to, peer));
-          }
-
-          return new Connection(to, peer);
-        });
-  }
-
-  /**
-   * Handle in incoming signal. Creates a new connection if it does not yet
-   * exists, then deliver the signal.
-   * @param {{from: string, to: string, signal: string}} params
-   * @private
-   */
-  _handleSignal (params) {
-    debug('handleSignal', params);
-
-    let from = params.to;
-    let to = params.from;
-    let peer = this.peers[to];
-    if (!peer) {
-      // create a new WebRTC peer if this is the first signal for a new peer connection
-      let initiator = false;
-      peer = this._createSimplePeer(from, to, initiator);
-
-      // list the new peer
-      this.peers[to] = peer;
-      peer.on('close', () => delete this.peers[to]);
-
-      this.emit('connection', new Connection(to, peer));
-    }
-
-    // deliver the signal
-    peer.signal(params.signal);
+  exists (id) {
+    return this.rpc.request('find', {id}).then((peer) => peer != null);
   }
 
   /**
@@ -151,36 +94,30 @@ export default class Broker {
         .then(() => this.rpc.request('register', {id: peerId}));
   }
 
-  // TODO: implement unregister
+  /**
+   * Unregister
+   * @return {Promise<null, Error>} Resolves when unregistered
+   */
+  unregister () {
+    return this._waitUntilConnected()
+        .then(() => this.rpc.request('unregister', {}));
+  }
+
+  /**
+   * Send a signal to a peer
+   * @param {{from: string, to: string, signal: Object}} message
+   * @return {Promise<null, Error>} Resolves when the signal is sent
+   */
+  signal (message) {
+    return this._waitUntilConnected()
+        .then(() => this.rpc.notify('signal', message));
+  }
 
   /**
    * Close the WebSocket connection to the signalling server.
    */
   close() {
     this.socket.close();
-  }
-
-  /**
-   * Create a new SimplePeer (a WebRTC connection)
-   * @param {string} from
-   * @param {string} to
-   * @param {boolean} initiator
-   * @return {SimplePeer}
-   * @private
-   */
-  _createSimplePeer (from, to, initiator) {
-    let options = extend({}, this.options, {initiator});
-    let peer = new UniversalSimplePeer(options);
-
-    peer.on('signal', (data) => {
-      debugWebRTC('signal', data);
-
-      this.rpc
-          .notify('signal', {from, to, signal: data })
-          .catch((err) => {this.emit('error', err)});
-    });
-
-    return peer;
   }
 
   /**

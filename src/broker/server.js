@@ -89,7 +89,7 @@ function createServer (port) {
       if (!toSocket) {
         throw new Error(`Peer not found (${params.to})`);
       }
-      return toSocket.rpc.request('signal', params);
+      toSocket.rpc.notify('signal', params);
     });
   });
 

@@ -1,21 +1,25 @@
 import Emitter from 'emitter-component';
+import { universalDebug } from './universal/universalDebug';
+import { UniversalSimplePeer } from './universal/UniversalSimplePeer';
+
+let debug = universalDebug('linkup:connection');
 
 export class Connection {
 
   /**
    * Wrapper for a SimplePeer connection
-   * @param {string} id
-   * @param {SimplePeer} peer
+   * @param {Options} options  options for SimplePeer
    */
-  constructor (id, peer) {
-    this.id = id;     // the id of the other peer
-    this._simplePeer = peer; // SimplePeer object
+  constructor (options) {
+    // create a SimplePeer (WebRTC connection)
+    this._simplePeer = new UniversalSimplePeer(options);
 
-    // pipe events from the peer
+    // pipe events from the WebRTC connection
     this._simplePeer.on('connect', () => this.emit('connect'));
     this._simplePeer.on('close', () => this.emit('close'));
     this._simplePeer.on('error', (err) => this.emit('error', err));
     this._simplePeer.on('data',  (message) => this.emit('message', JSON.parse(message)));
+    this._simplePeer.on('signal', (message) => this.emit('signal', message));
 
     // turn into an event emitter
     Emitter(this);
@@ -49,6 +53,14 @@ export class Connection {
         .then(() => {
           this._simplePeer.send(JSON.stringify(message))
         });
+  }
+
+  /**
+   * Deliver a signal to the SimplePeer
+   * @param {Object} data
+   */
+  signal (data) {
+    this._simplePeer.signal(data);
   }
 
   close () {
