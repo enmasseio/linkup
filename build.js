@@ -11,8 +11,7 @@ rollup({
     babel({
       babelrc: false,
       presets: ['es2015-rollup']
-    }),
-    //uglify()
+    })
   ]
 }).then(bundle => {
   bundle.write({
@@ -40,7 +39,7 @@ rollup({
       babelrc: false,
       presets: ['es2015-rollup']
     }),
-    //uglify()
+    uglify()
   ]
 }).then(bundle => {
   bundle.write({

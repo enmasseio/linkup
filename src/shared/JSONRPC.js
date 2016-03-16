@@ -118,7 +118,7 @@ export function JSONRPC (params) {
           request.resolve(message.result);
         }
       }
-      else {
+      else if ('method' in message) { // distinguish request from response
         if ('id' in message) {
           // handle an incoming request
           onRequest(message.method, message.params)
@@ -152,6 +152,9 @@ export function JSONRPC (params) {
               console.error(err);
             });
         }
+      }
+      else {
+        // ignore. it's an invalid message or a response with wrong id or something
       }
     };
 

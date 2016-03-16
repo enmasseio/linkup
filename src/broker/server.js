@@ -6,9 +6,9 @@ let WebSocketServer = require('ws').Server;
 let express = require('express');
 
 // es6 imports
+import { Cluster } from './Cluster';
 import { register, unregister, find } from './register';
 import { JSONRPC } from '../shared/JSONRPC';
-
 
 function createServer (port) {
   port = port || 3000;
@@ -72,10 +72,18 @@ function createServer (port) {
     });
 
     // find a peer, see if it exists
-    rpc.on('find', function (params) {
-      return find(params.id)
-          ? {id: params.id}
-          : null;
+    rpc.on('exists', function (params) {
+      let socket = find(params.id);
+      if (socket) {
+        return true;
+      }
+
+      if (cluster) {
+        // ask other servers in the cluster whether they know this peer
+        return cluster.exists(params.id);
+      }
+
+      return false;
     });
 
     // pass a signal to another peer
@@ -85,13 +93,45 @@ function createServer (port) {
             `Invalid id. params.from (${JSON.stringify(params.from)}) does not match the id of the the connection (${JSON.stringify(peerId)})`)
       }
 
-      let toSocket = find(params.to);
-      if (!toSocket) {
+      let socket = find(params.to);
+      if (socket) {
+        socket.rpc.notify('signal', params);
+      }
+      else if (cluster) {
+        cluster.signal(params);
+      }
+      else {
         throw new Error(`Peer not found (${params.to})`);
       }
-      toSocket.rpc.notify('signal', params);
     });
   });
+
+  // redis is used to send messages between servers. It is optional
+  let cluster = null;
+  if (process.env.REDISCLOUD_URL) {
+    debug('creating redis client...');
+    cluster = new Cluster(process.env.REDISCLOUD_URL);
+
+    // handle incoming test whether a peer exists
+    cluster.on('exists', (params) => {
+      let socket = find(params.to);
+      return socket ? true : false;
+    });
+
+    // handle incoming signals
+    cluster.on('signal', (params) => {
+      let socket = find(params.to);
+      if (socket) {
+        socket.rpc.notify('signal', params);
+      }
+      else {
+        // just ignore, we don't know this peer
+      }
+    })
+  }
+  else {
+    debug('No environment variable REDISCLOUD_URL provided. Skipping support for multiple servers');
+  }
 
   server.on('request', app);
   server.listen(port, function() {

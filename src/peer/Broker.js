@@ -81,7 +81,7 @@ export class Broker {
    * @return {Promise.<boolean, Error>}
    */
   exists (id) {
-    return this.rpc.request('find', {id}).then((peer) => peer != null);
+    return this.rpc.request('exists', {id});
   }
 
   /**

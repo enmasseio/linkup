@@ -263,7 +263,7 @@ the received signal as argument.
 
 - `{string} Connection.id` The id of the remote peer.
 
-### Broker server protocol
+### Messaging between broker and peer
 
 Peers communicate with the broker server to register them with an id and to do
 signalling with an other peer. Broker and peers send stringify JSON-RPC 2.0 messages
@@ -273,17 +273,27 @@ A peer can send the following messages via a WebSocket to the broker:
 
 Request                          | Response
 -------------------------------- | ---------------------------------------------
-`{id: UUID, method: 'ping', params: {}}`              | `{id: UUID, result: 'pong', error: null}`
-`{id: UUID, method: 'find', params: {id: 'peer-id'}}` | `{id: UUID, result: 'peer-id' | null, error: null}`
-`{id: UUID, method: 'register', {id: 'peer-id'}}`     | `{id: UUID, result: 'peer-id', error: null} | {id: UUID, result: null, error: Error}`
-`{id: UUID, method: 'unregister', params: {}}`        | `{id: UUID, result: null, error: null}`
-`{method: 'signal', params: {from: 'peer-id', to: 'peer-id', signal: Object}}` | No response, request is a notification
+`{"id": "UUID", "method": "ping", "params": {}}`              | `{"id": "UUID", "result": "pong", "error": null}`
+`{"id": "UUID", "method": "find", "params": {"id": "peer-id"}}` | `{"id": "UUID", "result": "peer-id" | null, "error": null}`
+`{"id": "UUID", "method": "register", {"id": "peer-id"}}`     | `{"id": "UUID", "result": "peer-id", "error": null} | {"id": "UUID", "result": null, "error": {...}}`
+`{"id": "UUID", "method": "unregister", "params": {}}`        | `{"id": "UUID", "result": null, "error": null}`
+`{"method": "signal", "params": {"from": "peer-id", "to": "peer-id", "signal": {...}}}` | No response, request is a notification
 
 A broker can send the following messages to a peer:
 
 Request                          | Response
 -------------------------------- | ---------------------------------------------
 `{method: 'signal', params: {from: 'peer-id', to: 'peer-id', signal: Object}}` | No response, request is a notification
+
+### Messaging between broker servers (cluster)
+
+Broker servers can run in a cluster, sending messages to each other via Redis pub/sub. The following messages can be send:
+
+Message | Description
+------- | -----------
+`{"type":"signal","data":{"from": "peer-id", "to": "peer-id", "signal": {...}}}` | Forward a WebRTC signal
+`{"type":"find","data":{"id": "peer-id"}}` | Ask the other servers whether they know a peer with id `"peer-id"`.
+`{"type":"found","data":{"id": "peer-id"}}` | Response of a server that knows a peer with id `"peer-id"`.
 
 
 
@@ -295,7 +305,7 @@ First install the dependencies once:
 $ npm install
 ```
 
-To run the broker server in development mode with debugging:
+To build & run the broker server in development mode with debugging:
 
 ```bash
 $ npm start
@@ -306,6 +316,19 @@ Then open the following url in your browser:
 http://localhost:5000
 
 Note that the server must be restarted by hand on changes in the code.
+
+The following environment variables can be provided:
+
+Name           | Description
+-------------- | -----------
+PORT           | Port number for the server.
+REDISCLOUD_URL | Optional redis database url, used for pub/sub messaging between multiple broker servers in a cluster.
+
+Example usage:
+
+```bash
+$ PORT=5001 npm start
+```
 
 
 ## Build
@@ -329,6 +352,12 @@ To deploy to heroku, first set a git remote to your heroku application:
 
 ```bash
 $ heroku git:remote -a my-heroku-app
+```
+
+Add a (free) Redis database:
+
+```bash
+$ heroku addons:create rediscloud
 ```
 
 Then force heroku to install all devDependencies, as it has to built the server application on startup:
