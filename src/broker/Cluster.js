@@ -1,7 +1,6 @@
 import Emitter from 'emitter-component';
 import { find } from './register';
 import { JSONRPC } from '../shared/JSONRPC';
-import * as emitOnce from '../shared/emitOnce';
 
 let redis = require('redis');
 let debug = require('debug')('linkup:redis');
@@ -21,50 +20,13 @@ export class Cluster {
 
     // create a subscriber client
     this.redisSubscriber = redis.createClient(url);
-
-    // TODO: listen for errors etc on the publisher
-
-    this.redisSubscriber.on('error', function (err) {
-      debug('Error', err);
-    });
+    this.redisSubscriber.on('error', (err) => debug('Error', err));
+    this.redisSubscriber.subscribe(REDIS_CHANNEL);
+    this.redisSubscriber.on('message', (channel, message) => this._receive(message));
 
     // create a publisher client
     this.redisPublisher = redis.createClient(url);
-    this.redisPublisher.on('error', function (err) {
-      debug('Error', err);
-    });
-
-    this.redisSubscriber.subscribe(REDIS_CHANNEL);
-    this.redisSubscriber.on('message',  (channel, message) => this._receive(message));
-  }
-
-  _receive (message) {
-    debug('receive message', message);
-    let json = JSON.parse(message);
-
-    if (json.type === 'signal') {
-      this.emit('signal', json.data);
-    }
-
-    if (json.type === 'find') {
-      let id = json.data.id;
-      let socket = find(id);
-      if (socket) {
-        this._send('found', {id});
-      }
-    }
-
-    if (json.type === 'found') {
-      let id = json.data.id;
-      emitOnce.emit(id, true);
-    }
-  }
-
-  _send (type, data) {
-    let message = {type, data};
-    debug('send message', message);
-
-    this.redisPublisher.publish(REDIS_CHANNEL, JSON.stringify(message));
+    this.redisPublisher.on('error', (err) => debug('Error', err));
   }
 
   /**
@@ -78,12 +40,103 @@ export class Cluster {
   /**
    * Ask all servers whether they know a certain peer
    * @param {string} id
-   * @return {Promise}
+   * @return {Promise.<boolean, Error>} Resolves with `true` if any of the servers
+   *                                    knows this peer, else resolves with `false`
    */
   exists (id) {
-    this._send('find', {id});
+    return this._getSubscriberCount()
+        .catch(err => {
+          debug('Error', err);
 
-    return emitOnce.once(id, TIMEOUT)
-        .catch(err => false); // return false when a timeout occurs
+          return Infinity; // this will simply wait until the timeout before concluding that a peer is not found
+        })
+        .then(count => {
+          return new Promise((resolve, reject) => {
+            let responses = 0;  // number of responses
+
+            let callback = (response) => {
+              if (response.id !== id) {
+                return;
+              }
+
+              responses++;
+              if (response.found || responses === count) {
+                // a server responded with found=true, or all servers have responded
+                this.off('found', callback);
+                resolve(response.found);
+              }
+            };
+
+            // cancel listening after a timeout
+            setTimeout(() => this.off('found', callback), TIMEOUT);
+
+            // listen for found responses
+            this.on('found', callback);
+
+            // ask all servers whether they know this peer
+            this._send('find', {id});
+          });
+        });
+  }
+
+  /**
+   * Publish a message via Redis. The message is send as stingified json
+   * structured as {type: string, data: *}`
+   * @param {string} type
+   * @param {*} data
+   * @private
+   */
+  _send (type, data) {
+    let message = {type, data};
+    debug('send message', message);
+
+    this.redisPublisher.publish(REDIS_CHANNEL, JSON.stringify(message));
+  }
+
+  /**
+   * Receive a stringified message
+   * @param {string} message   Message is structured as
+   * @private
+   */
+  _receive (message) {
+    debug('receive message', message);
+    let json = JSON.parse(message);
+
+    if (json.type === 'signal') {
+      this.emit('signal', json.data);
+    }
+
+    if (json.type === 'find') {
+      this.emit('find', json.data);
+
+      // send a response
+      let id = json.data.id;
+      let socket = find(id);
+      this._send('found', {id, found: socket ? true : false});
+    }
+
+    if (json.type === 'found') {
+      this.emit('found', json.data)
+    }
+  }
+
+  /**
+   * Retrieve the number of subscribers on our REDIS_CHANNEL from redis
+   * @return {Promise.<number, Error>}
+   * @private
+   */
+  _getSubscriberCount () {
+    return new Promise((resolve, reject) => {
+      this.redisPublisher.send_command('pubsub', ['numsub', REDIS_CHANNEL], (err, result) => {
+        if (err) {
+          reject(err);
+        }
+        else {
+          // result is an Array like ['linkup', 123]
+          let count = result[1];
+          resolve(count);
+        }
+      });
+    });
   }
 }

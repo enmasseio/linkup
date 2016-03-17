@@ -60,10 +60,16 @@ function createServer (port) {
       return 'pong';
     });
 
-    // register a peers id
+    // register an id for a peer
     rpc.on('register', function (params) {
-      peerId = register(socket, params.id);
-      return peerId;
+      // FIXME: two peers can accidentally register at two servers with the same id
+      return exists(params).then(doesExist => {
+          if (doesExist) {
+            throw new Error(`id "${params.id}" already taken`);
+          }
+
+          return register(socket, params.id);
+        });
     });
 
     // unregister a peers id
@@ -72,19 +78,7 @@ function createServer (port) {
     });
 
     // find a peer, see if it exists
-    rpc.on('exists', function (params) {
-      let socket = find(params.id);
-      if (socket) {
-        return true;
-      }
-
-      if (cluster) {
-        // ask other servers in the cluster whether they know this peer
-        return cluster.exists(params.id);
-      }
-
-      return false;
-    });
+    rpc.on('exists', (params) => exists(params));
 
     // pass a signal to another peer
     rpc.on('signal', function (params) {
@@ -131,6 +125,25 @@ function createServer (port) {
   }
   else {
     debug('No environment variable REDISCLOUD_URL provided. Skipping support for multiple servers');
+  }
+
+  /**
+   * Check whether a peer exists
+   * @param {{id: string}} params
+   * @return {*}
+   */
+  function exists(params) {
+    let socket = find(params.id);
+    if (socket) {
+      return true;
+    }
+
+    if (cluster) {
+      // ask other servers in the cluster whether they know this peer
+      return cluster.exists(params.id);
+    }
+
+    return false;
   }
 
   server.on('request', app);

@@ -1,5 +1,12 @@
 # Changelog
 
+## not yet released, v0.4.1
+
+- Fixed registering an id for a peer not being checked with other servers in
+  the cluster.
+- Fixed the need to wait until timeout before concluding that a peer is not found.
+
+
 ## 2016-03-16, v0.4.0
 
 - Switched to JSON-RPC protocol for communication between broker and peers.
