@@ -68,7 +68,8 @@ function createServer (port) {
             throw new Error(`id "${params.id}" already taken`);
           }
 
-          return register(socket, params.id);
+          peerId = register(socket, params.id); // put peerId in global variable
+          return peerId;
         });
     });
 
