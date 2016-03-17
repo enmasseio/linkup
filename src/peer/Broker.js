@@ -3,10 +3,8 @@ import Emitter from 'emitter-component';
 import ReconnectingWebSocket from './ReconnectingWebSocket';
 import { universalDebug } from './universal/universalDebug';
 import { UniversalWebSocket } from './universal/UniversalWebSocket';
-import { UniversalSimplePeer }  from './universal/UniversalSimplePeer';
 
 import { JSONRPC } from '../shared/JSONRPC';
-import { Connection } from './Connection';
 
 let debug = universalDebug('linkup:broker');
 let debugSocket = universalDebug('linkup:socket');

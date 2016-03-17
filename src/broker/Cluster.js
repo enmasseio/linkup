@@ -1,6 +1,5 @@
 import Emitter from 'emitter-component';
 import { find } from './register';
-import { JSONRPC } from '../shared/JSONRPC';
 
 let redis = require('redis');
 let debug = require('debug')('linkup:redis');
