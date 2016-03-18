@@ -17,13 +17,13 @@ A peer can send the following messages via a WebSocket to the broker:
 
 Request:
 
-```json
+```js
 {"id": "UUID", "method": "ping", "params": {}}
 ```
 
 Response:
 
-```json
+```js
 {"id": "UUID", "result": "pong", "error": null}
 ```
 
@@ -33,13 +33,13 @@ Test whether a peer with some id exists or not.
 
 Request:
 
-```json
+```js
 {"id": "UUID", "method": "exists", "params": {"id": "PEER_ID"}}
 ```
 
 Response:
 
-```json
+```js
 {"id": "UUID", "result": true | false, "error": null}
 ```
 
@@ -47,19 +47,19 @@ Response:
 
 Request:
 
-```json
-{"id": "UUID", "method": "register", {"id": "PEER_ID"}}
+```js
+{"id": "UUID", "method": "register": {"id": "PEER_ID"}}
 ```
 
 Response:
 
-```json
+```js
 {"id": "UUID", "result": "PEER_ID", "error": null}
 ```
 
 or:
 
-```json
+```js
 {"id": "UUID", "result": null, "error": {...}}
 ```
 
@@ -67,13 +67,13 @@ or:
 
 Request:
 
-```json
+```js
 {"id": "UUID", "method": "unregister", "params": {}}
 ```
 
 Response:
 
-```json
+```js
 {"id": "UUID", "result": null, "error": null}
 ```
 
@@ -83,7 +83,7 @@ Pass a signal to another peer
 
 Notification:
 
-```json
+```js
 {"method": "signal", "params": {"from": "PEER_ID", "to": "PEER_ID", "signal": {...}}}
 ```
 
@@ -99,7 +99,7 @@ Pass a signal received from some peer to another peer.
 
 Notification:
 
-```json
+```js
 {"method": "signal", "params": {"from": "PEER_ID", "to": "PEER_ID", "signal": {...}}}
 ```
 
@@ -117,7 +117,7 @@ Pass a signal received from a peer to another broker server, which in turn deliv
 
 Message:
 
-```json
+```js
 {"type":"signal","data":{"from": "PEER_ID", "to": "PEER_ID", "signal": {...}}}
 ```
 
@@ -127,7 +127,7 @@ Ask another broker whether it has registered a peer with a certain id. All broke
 
 Message:
 
-```json
+```js
 {"type":"find","data":{"id": "PEER_ID"}}
 ```
 
@@ -137,6 +137,6 @@ This message is send as reply on a `find` message.
 
 Message:
 
-```json
+```js
 {"type":"found","data":{"id": "PEER_ID", "found": true | false}}
 ```
