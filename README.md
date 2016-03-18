@@ -105,8 +105,8 @@ peer.send('peer2', 'hi peer2!')
 ## Documentation
 
 - [Examples](https://github.com/enmasseio/linkup/blob/master/examples/)
-- [API](https://github.com/enmasseio/linkup/blob/docs/api.md)
-- [Protocols](https://github.com/enmasseio/linkup/blob/docs/protocols.md)
+- [API](https://github.com/enmasseio/linkup/blob/master/docs/api.md)
+- [Protocols](https://github.com/enmasseio/linkup/blob/master/docs/protocols.md)
 
 
 ## Similar libraries
