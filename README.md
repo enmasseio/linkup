@@ -14,12 +14,6 @@ Features:
   talk to other peers within the same application (closed system).
 - Works in browsers and node.js.
 
-Roadmap:
-
-- Support for Android and iOS.
-- Support for letting peers authenticate each other for example with
-  a Google or Facebook id.
-
 
 ## Requirements
 
@@ -108,6 +102,12 @@ peer.send('peer2', 'hi peer2!')
     });
 ```
 
+## Documentation
+
+- [Examples](https://github.com/enmasseio/linkup/blob/master/examples/)
+- [API](https://github.com/enmasseio/linkup/blob/docs/api.md)
+- [Protocols](https://github.com/enmasseio/linkup/blob/docs/protocols.md)
+
 
 ## Similar libraries
 
@@ -116,183 +116,6 @@ peer.send('peer2', 'hi peer2!')
 - https://github.com/js-platform/p2p
 - https://github.com/InstantWebP2P/iwebpp.io
 - https://github.com/cjb/serverless-webrtc
-
-
-## API
-
-### linkup
-
-#### Functions
-
-##### linkup.createPeer(id [, options])
-
-Create a new peer
-
-- `@param {string} id`  The id for the peer. Other peers will be able to connect
-  to this peer using this id.
-- `@param {Object} [options]` Optional options. The options are structured like:
-
-  ```js
-  var options = {
-    browserUrl: 'wss://linkup-broker.herokuapp.com',
-    simplePeer: {
-      // SimplePeer options, for example `trickle: true`
-    }
-  }
-  ```
-
-  The options for SimplePeer (creating WebRTC connections) are described here:
-  https://github.com/feross/simple-peer#api
-
-- `@return Peer` Returns a peer instance
-
-### Peer
-
-A peer is constructed via the function `linkup.createPeer(id [, options])`.
-
-#### Methods
-
-##### Peer.connect(peerId)
-
-Open a WebRTC connection to a peer.
-
-- `@param {string} peerId`
-- `@return {Promise.<Connection, Error>}` Resolves with a connection. When already connected with this peer, the existing connection is returned
-
-##### Peer.disconnect(peerId)
-
-Disconnect from a peer
-
-- `@param {string} peerId`
-- `@return {Promise.<undefined, Error>}` resolves when disconnected
-
-##### Peer.send(peerId, message)
-
-Send a message to a peer.
-Will automatically establish a WebRTC connection if not yet connected.
-
-- `@param {string} peerId`
-- `@param {*} message`
-- `@return {Promise<undefined, Error>}`
-
-##### Peer.close()
-
-Close a peer. Closes the connection to the broker server, and closes all open
-WebRTC connections to peers.
-
-- `@return Promise<undefined, Error>` Returns a promise which resolves when the message has been
-  delivered.
-
-#### Events
-
-##### Peer.on('connection', function (connection) { })
-
-Emitted when a new connection is created by a remote peer. The peer id and
-connection (type `Connection`) is passed as argument to the callback function.
-
-##### Peer.on('close', function (connection) { })
-
-Emitted when a connection is closed. The peer id and connection
-(type `Connection`) is passed as argument to the callback function.
-
-##### Peer.on('error', function (error) { })
-
-Emitted when an error occurs. The callback function is invoked with the error as argument.
-
-##### Peer.on('message', function (envelope) { })
-
-Emitted when a message is received. The passed `envelope` is an object containing the id of the sender as property `from`, and a property `message` containing the actual message:
-
-```
-Peer.on('message', function (envelope) {
-  console.log('Received message from peer', envelope.from, ':', envelope.message);
-});
-```
-
-##### Peer.on('register', function (id) { })
-
-Emitted when the peer has registered it's id at the broker server. The callback function is invoked with the registered id as argument.
-
-#### Properties
-
-- `{string} Peer.id` The id of the peer
-
-
-### Connection
-
-Holds a WebRTC connection to an other peer. A connection is created via the method `Peer.connect(peerId)`.
-
-#### Methods
-
-##### `Connection.send(message)`
-
-- `@param {*} message`  The message to be send. Must be a valid JSON object.
-- `@return {Promise.<undefined, Error>}` Resolves when the message has been send
-
-##### `Connection.close()`
-
-Close the connection.
-
-- `@return {Promise.<undefined, Error>}` Resolves when the connection has been closed.
-
-#### Events
-
-##### Connection.on('connect', function () { })
-
-Emitted when connected.
-
-##### Connection.on('close', function () { })
-
-Emitted when the connection has been closed (normally by the remote peer).
-
-##### Connection.on('error', function (error) { })
-
-Emitted when an error occurs. The callback function is invoked with the error as argument.
-
-##### Connection.on('message', function (message) { })
-
-Emitted when a message is received. The callback function is invoked with the received message as argument.
-
-##### Connection.on('signal', function (signal) { })
-
-Emitted when a WebRTC signal is received. The callback function is invoked with
-the received signal as argument.
-
-#### Properties
-
-- `{string} Connection.id` The id of the remote peer.
-
-### Messaging between broker and peer
-
-Peers communicate with the broker server to register them with an id and to do
-signalling with an other peer. Broker and peers send stringify JSON-RPC 2.0 messages
-over the WebSocket connection.
-
-A peer can send the following messages via a WebSocket to the broker:
-
-Request                          | Response
--------------------------------- | ---------------------------------------------
-`{"id": "UUID", "method": "ping", "params": {}}`              | `{"id": "UUID", "result": "pong", "error": null}`
-`{"id": "UUID", "method": "find", "params": {"id": "peer-id"}}` | `{"id": "UUID", "result": "peer-id" | null, "error": null}`
-`{"id": "UUID", "method": "register", {"id": "peer-id"}}`     | `{"id": "UUID", "result": "peer-id", "error": null} | {"id": "UUID", "result": null, "error": {...}}`
-`{"id": "UUID", "method": "unregister", "params": {}}`        | `{"id": "UUID", "result": null, "error": null}`
-`{"method": "signal", "params": {"from": "peer-id", "to": "peer-id", "signal": {...}}}` | No response, request is a notification
-
-A broker can send the following messages to a peer:
-
-Request                          | Response
--------------------------------- | ---------------------------------------------
-`{method: 'signal', params: {from: 'peer-id', to: 'peer-id', signal: Object}}` | No response, request is a notification
-
-### Messaging between broker servers (cluster)
-
-Broker servers can run in a cluster, sending messages to each other via Redis pub/sub. The following messages can be send:
-
-Message | Description
-------- | -----------
-`{"type":"signal","data":{"from": "peer-id", "to": "peer-id", "signal": {...}}}` | Forward a WebRTC signal
-`{"type":"find","data":{"id": "peer-id"}}` | Ask the other servers whether they know a peer with id `"peer-id"`.
-`{"type":"found","data":{"id": "peer-id"}}` | Response of a server that knows a peer with id `"peer-id"`.
 
 
 
@@ -353,16 +176,18 @@ To deploy to heroku, first set a git remote to your heroku application:
 $ heroku git:remote -a my-heroku-app
 ```
 
-Add a (free) Redis database:
-
-```bash
-$ heroku addons:create rediscloud
-```
-
-Then force heroku to install all devDependencies, as it has to built the server application on startup:
+Then force Heroku to install all devDependencies, as it has to built the server application on startup:
 
 ```bash
 $ heroku config:set NPM_CONFIG_PRODUCTION=false
+```
+
+In order to make the broker server scalable, multiple broker servers can be be set up in a cluster. The servers communicate via pub/sub messaging powered by Redis. This is optional.
+
+To add a (free) Redis database to the Heroku setup:
+
+```bash
+$ heroku addons:create rediscloud
 ```
 
 To deploy:
@@ -370,6 +195,15 @@ To deploy:
 ```bash
 $ npm run deploy
 ```
+
+
+## Roadmap
+
+- Support for Android and iOS.
+- Support for letting peers authenticate each other for example with
+  a Google or Facebook id.
+- Support authentication against the broker server, allowing to set up
+  a private broker server.
 
 
 ## License

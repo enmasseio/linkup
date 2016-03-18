@@ -1,8 +1,5 @@
 import Emitter from 'emitter-component';
-import { universalDebug } from './universal/universalDebug';
 import { UniversalSimplePeer } from './universal/UniversalSimplePeer';
-
-let debug = universalDebug('linkup:connection');
 
 export class Connection {
 
