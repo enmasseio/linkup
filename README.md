@@ -196,6 +196,17 @@ To deploy:
 $ npm run deploy
 ```
 
+### Publish
+
+To publish a new version of `linkup` on npm:
+
+- Update the version number in package.json.
+- Update the CHANGELOG.md
+- run `npm run build`
+- run `npm publish`
+- Commit the changed package.json, CHANGELOG.md, and files in ./dist on git.
+- Create a git tag for the new version: `git tag v1.2.3; git push --tags`
+
 
 ## Roadmap
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## not yet released, v0.4.1
+## 2016-04-05, v0.4.1
 
 - Fixed registering an id for a peer not being checked with other servers in
   the cluster.
