@@ -131,12 +131,12 @@ function createServer (port) {
   /**
    * Check whether a peer exists
    * @param {{id: string}} params
-   * @return {*}
+   * @return {Promise<boolean, Error>}
    */
   function exists(params) {
     let socket = find(params.id);
     if (socket) {
-      return true;
+      return Promise.resolve(true);
     }
 
     if (cluster) {
@@ -144,7 +144,7 @@ function createServer (port) {
       return cluster.exists(params.id);
     }
 
-    return false;
+    return Promise.resolve(false);
   }
 
   server.on('request', app);
